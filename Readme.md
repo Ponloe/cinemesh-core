@@ -34,7 +34,7 @@ CinemaSH-Core serves as the authoritative Identity Provider and Movie Bank, mana
 - Docker & Docker Compose
 - Make (optional)
 
-### 1️⃣ Clone & Setup
+###  Clone & Setup
 ```bash
 # Clone the repository
 git clone https://github.com/Ponloe/cinemesh-core
@@ -44,11 +44,17 @@ cd cinemesh-core
 go mod download
 ```
 
-### 2️⃣ Configure Environment
+### 2 Configure Environment
 ```bash
 # Copy environment template
 cp .env.example .env
 
 # Edit .env and set your JWT_SECRET
 nano .env
+```
+### 3 Run the server
+```bash
+
+go run ./cmd/server
+
 ```
