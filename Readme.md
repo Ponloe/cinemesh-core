@@ -1,0 +1,80 @@
+# CinemaSH-Core
+
+**Enterprise-Grade REST API Gateway & Metadata Hub for Distributed Movie Platform**
+
+CinemaSH-Core serves as the authoritative Identity Provider and Movie Bank, managing user authentication, movie metadata, and orchestrating requests across distributed sub-systems.
+
+---
+
+## Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    CinemaSH-Core API                     │
+│              (Backend-for-Frontend Gateway)              │
+├─────────────────────────────────────────────────────────┤
+│  • JWT Authentication & User Management                  │
+│  • Movie Metadata Hub (Cast, Crew, Synopsis)            │
+│  • Search & Filtering Engine                             │
+│  • Sub-System Orchestration Layer                        │
+└─────────────────────────────────────────────────────────┘
+                           ▲
+                           │
+                  ┌────────┴────────┐
+                  │   Frontend UI    │
+                  └─────────────────┘
+```
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Go 1.21+
+- Docker & Docker Compose
+- Make (optional)
+
+### 1️⃣ Clone & Setup
+```bash
+# Clone the repository
+git clone https://github.com/Ponloe/cinemesh-core
+cd cinemesh-core
+
+# Install dependencies
+go mod download
+```
+
+### 2️⃣ Configure Environment
+```bash
+# Copy environment template
+cp .env.example .env
+
+# Edit .env and set your JWT_SECRET
+nano .env
+```
+
+### 3️⃣ Start Database
+```bash
+# Start PostgreSQL with Docker Compose
+docker-compose up -d
+
+# Verify database is running
+docker ps
+```
+
+### 4️⃣ Run the API
+```bash
+# Using Go directly
+go run cmd/api/main.go
+
+# OR using Make
+make run
+
+# OR for complete dev environment
+make dev
+```
+
+The API will be available at `http://localhost:8080`
+
+
+**Built with <3 for the CinemaSH Platform**
