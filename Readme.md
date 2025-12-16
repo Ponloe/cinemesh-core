@@ -34,7 +34,7 @@ CinemaSH-Core serves as the authoritative Identity Provider and Movie Bank, mana
 - Docker & Docker Compose
 - Make (optional)
 
-###  Clone & Setup
+### 1 Clone & Setup
 ```bash
 # Clone the repository
 git clone https://github.com/Ponloe/cinemesh-core
