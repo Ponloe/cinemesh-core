@@ -52,29 +52,3 @@ cp .env.example .env
 # Edit .env and set your JWT_SECRET
 nano .env
 ```
-
-### 3️⃣ Start Database
-```bash
-# Start PostgreSQL with Docker Compose
-docker-compose up -d
-
-# Verify database is running
-docker ps
-```
-
-### 4️⃣ Run the API
-```bash
-# Using Go directly
-go run cmd/api/main.go
-
-# OR using Make
-make run
-
-# OR for complete dev environment
-make dev
-```
-
-The API will be available at `http://localhost:8080`
-
-
-**Built with <3 for the CinemaSH Platform**
