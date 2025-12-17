@@ -1,13 +1,11 @@
 package database
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
-	"github.com/Ponloe/cinemesh-core/internal/users"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -61,51 +59,14 @@ func Connect() error {
 	return nil
 }
 
-func Migrate() error {
+func Migrate(models ...interface{}) error {
 	if DB == nil {
-		return errors.New("database not connected")
+		return fmt.Errorf("database not connected")
 	}
-	log.Println("running AutoMigrate for users.User")
-	if err := DB.AutoMigrate(&users.User{}); err != nil {
-		return fmt.Errorf("auto migrate users: %w", err)
+	log.Println("running AutoMigrate")
+	if err := DB.AutoMigrate(models...); err != nil {
+		return fmt.Errorf("auto migrate: %w", err)
 	}
 	log.Println("migrations complete")
 	return nil
-}
-
-func Seed() error {
-	if os.Getenv("SEED_DATA") != "true" {
-		return nil
-	}
-	if DB == nil {
-		return errors.New("database not connected")
-	}
-
-	if !DB.Migrator().HasTable(&users.User{}) {
-		log.Println("users table missing, running AutoMigrate before seeding")
-		if err := DB.AutoMigrate(&users.User{}); err != nil {
-			return fmt.Errorf("auto migrate users before seed: %w", err)
-		}
-	}
-
-	var u users.User
-	err := DB.First(&u, "email = ?", "admin@cinemesh.com").Error
-	if err == nil {
-		log.Println("admin user already present")
-		return nil
-	}
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		admin := users.User{
-			Username:     "admin",
-			Email:        "admin@cinemesh.com",
-			PasswordHash: "",
-			Role:         "admin",
-		}
-		if err := DB.Create(&admin).Error; err != nil {
-			return fmt.Errorf("create admin: %w", err)
-		}
-		log.Println("admin user created")
-		return nil
-	}
-	return fmt.Errorf("seed query: %w", err)
 }

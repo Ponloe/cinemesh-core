@@ -8,6 +8,7 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/Ponloe/cinemesh-core/internal/database"
+	"github.com/Ponloe/cinemesh-core/internal/users"
 )
 
 func main() {
@@ -28,16 +29,14 @@ func main() {
 		log.Fatalf("migrations failed: %v", err)
 	}
 
-	// seeding controlled by SEED_DATA env var
-	if err := database.Seed(); err != nil {
-		log.Fatalf("seeding failed: %v", err)
-	}
-
 	r := gin.Default()
 
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
+
+	r.POST("/users", users.CreateUserHandler)
+	r.GET("/users/:id", users.GetUserHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {
