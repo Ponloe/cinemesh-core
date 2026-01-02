@@ -1,8 +1,8 @@
-# CinemaSH-Core
+# Cinemesh-Core
 
 **Enterprise-Grade REST API Gateway & Metadata Hub for Distributed Movie Platform**
 
-CinemaSH-Core serves as the authoritative Identity Provider and Movie Bank, managing user authentication, movie metadata, and orchestrating requests across distributed sub-systems.
+Cinemesh-Core serves as the authoritative Identity Provider and Movie Bank, managing user authentication, movie metadata, and orchestrating requests across distributed sub-systems.
 
 ---
 
@@ -10,7 +10,7 @@ CinemaSH-Core serves as the authoritative Identity Provider and Movie Bank, mana
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    CinemaSH-Core API                     │
+│                    Cinemesh-Core API                     │
 │              (Backend-for-Frontend Gateway)              │
 ├─────────────────────────────────────────────────────────┤
 │  • JWT Authentication & User Management                  │
