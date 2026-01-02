@@ -8,12 +8,17 @@ import (
 
 func RequireAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var tokenStr string
 		h := c.GetHeader("Authorization")
-		if h == "" || !strings.HasPrefix(h, "Bearer ") {
-			c.AbortWithStatusJSON(401, gin.H{"error": "missing or invalid authorization header"})
+		if strings.HasPrefix(h, "Bearer ") {
+			tokenStr = strings.TrimPrefix(h, "Bearer ")
+		} else {
+			tokenStr, _ = c.Cookie("token")
+		}
+		if tokenStr == "" {
+			c.AbortWithStatusJSON(401, gin.H{"error": "missing or invalid authorization"})
 			return
 		}
-		tokenStr := strings.TrimPrefix(h, "Bearer ")
 		claims, err := ParseToken(tokenStr)
 		if err != nil {
 			c.AbortWithStatusJSON(401, gin.H{"error": "invalid token"})
@@ -22,6 +27,17 @@ func RequireAuth() gin.HandlerFunc {
 		c.Set("user_id", claims.UserID)
 		c.Set("user_email", claims.Email)
 		c.Set("user_role", claims.Role)
+		c.Next()
+	}
+}
+
+func RequireAdmin() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		role, ok := c.Get("user_role")
+		if !ok || role != "admin" {
+			c.AbortWithStatusJSON(403, gin.H{"error": "admin access required"})
+			return
+		}
 		c.Next()
 	}
 }

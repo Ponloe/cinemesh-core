@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}} - Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script> <!-- Tailwind for quick styling -->
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 text-white p-4">
+        <div class="container mx-auto flex justify-between">
+            <h1 class="text-xl font-bold">CinemaSH Admin</h1>
+            <div>
+                <a href="/admin" class="mr-4">Dashboard</a>
+                <a href="/admin/users" class="mr-4">Users</a>
+                <a href="/logout">Logout</a> <!-- Add logout logic if needed -->
+            </div>
+        </div>
+    </nav>
+    <div class="container mx-auto p-4">
+        {{template "content" .}}
+    </div>
+</body>
+</html>
