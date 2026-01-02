@@ -98,7 +98,7 @@ func GetUserHandler(c *gin.Context) {
 
 func ListUsersHandler(c *gin.Context) {
 	var users []User
-	if err := database.DB.Find(&users).Error; err != nil {
+	if err := database.DB.Order("id ASC").Find(&users).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "error.html", gin.H{"error": err.Error()})
 		return
 	}

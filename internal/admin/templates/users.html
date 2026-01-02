@@ -25,10 +25,18 @@
         <table class="table-auto w-full bg-white shadow">
             <thead>
                 <tr class="bg-gray-200">
-                    <th class="px-4 py-2">ID</th>
-                    <th class="px-4 py-2">Username</th>
-                    <th class="px-4 py-2">Email</th>
-                    <th class="px-4 py-2">Role</th>
+                    <th class="px-4 py-2">
+                        <a href="?sort=id&order={{if eq .sort "id"}}{{if eq .order "asc"}}desc{{else}}asc{{end}}{{else}}asc{{end}}" class="{{if eq .sort "id"}}font-bold{{end}}">ID</a>
+                    </th>
+                    <th class="px-4 py-2">
+                        <a href="?sort=username&order={{if eq .sort "username"}}{{if eq .order "asc"}}desc{{else}}asc{{end}}{{else}}asc{{end}}" class="{{if eq .sort "username"}}font-bold{{end}}">Username</a>
+                    </th>
+                    <th class="px-4 py-2">
+                        <a href="?sort=email&order={{if eq .sort "email"}}{{if eq .order "asc"}}desc{{else}}asc{{end}}{{else}}asc{{end}}" class="{{if eq .sort "email"}}font-bold{{end}}">Email</a>
+                    </th>
+                    <th class="px-4 py-2">
+                        <a href="?sort=role&order={{if eq .sort "role"}}{{if eq .order "asc"}}desc{{else}}asc{{end}}{{else}}asc{{end}}" class="{{if eq .sort "role"}}font-bold{{end}}">Role</a>
+                    </th>
                     <th class="px-4 py-2">Actions</th>
                 </tr>
             </thead>
