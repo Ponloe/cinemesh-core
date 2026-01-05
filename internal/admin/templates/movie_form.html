@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - {{if .movie.ID}}Edit{{else}}Add{{end}} Movie</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 text-white p-4">
+        <div class="container mx-auto flex justify-between">
+            <h1 class="text-xl font-bold">Cinemesh Admin</h1>
+            <div>
+                <a href="/admin" class="mr-4">Dashboard</a>
+                <a href="/admin/users" class="mr-4">Users</a>
+                <a href="/admin/movies" class="mr-4">Movies</a>
+                <a href="/admin/genres" class="mr-4">Genres</a>
+                <form action="/admin/logout" method="POST" class="inline">
+                    <button type="submit" class="text-red-500">Logout</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+    <div class="container mx-auto p-4">
+        <h2 class="text-2xl font-bold mb-4">{{if .movie.ID}}Edit{{else}}Add{{end}} Movie</h2>
+        <form action="{{.action}}" method="{{.method}}" class="bg-white p-6 rounded shadow">
+            <div class="mb-4">
+                <label class="block text-gray-700">Title</label>
+                <input type="text" name="title" value="{{.movie.Title}}" class="w-full p-2 border" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Slug</label>
+                <input type="text" name="slug" value="{{.movie.Slug}}" class="w-full p-2 border" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Synopsis</label>
+                <textarea name="synopsis" class="w-full p-2 border">{{.movie.Synopsis}}</textarea>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Poster URL</label>
+                <input type="url" name="poster_url" value="{{.movie.PosterURL}}" class="w-full p-2 border">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Backdrop URL</label>
+                <input type="url" name="backdrop_url" value="{{.movie.BackdropURL}}" class="w-full p-2 border">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">MPAA Rating</label>
+                <input type="text" name="mpaa_rating" value="{{.movie.MPAARating}}" class="w-full p-2 border">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Release Date</label>
+                <input type="date" name="release_date" value="{{if .movie.ReleaseDate}}{{.movie.ReleaseDate.Format "2006-01-02"}}{{end}}" class="w-full p-2 border">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Duration (Minutes)</label>
+                <input type="number" name="duration_minutes" value="{{if .movie.DurationMinutes}}{{.movie.DurationMinutes}}{{end}}" class="w-full p-2 border">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Genres</label>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {{range .genres}}
+                    <label class="flex items-center space-x-2 bg-gray-50 p-2 rounded border hover:bg-gray-100 cursor-pointer">
+                        <input type="checkbox" name="genres" value="{{.ID}}" 
+                            {{if index $.selectedGenres .ID}}checked{{end}}
+                            class="form-checkbox h-5 w-5 text-blue-600">
+                        <span>{{.Name}}</span>
+                    </label>
+                    {{end}}
+                </div>
+            </div>
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Save</button>
+            <a href="/admin/movies" class="ml-4 text-gray-500">Cancel</a>
+        </form>
+    </div>
+</body>
+</html>

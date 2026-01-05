@@ -11,6 +11,7 @@ import (
 	"github.com/Ponloe/cinemesh-core/internal/admin"
 	"github.com/Ponloe/cinemesh-core/internal/auth"
 	"github.com/Ponloe/cinemesh-core/internal/database"
+	"github.com/Ponloe/cinemesh-core/internal/movies"
 	"github.com/Ponloe/cinemesh-core/internal/users"
 )
 
@@ -28,8 +29,8 @@ func main() {
 	}
 
 	// run migrations to create tables
-	if err := database.Migrate(&users.User{}); err != nil {
-		log.Fatalf("migrations failed: %v", err)
+	if err := database.Migrate(&users.User{}, &movies.Movie{}, &movies.Genre{}, &movies.MovieGenre{}); err != nil {
+		log.Fatal(err)
 	}
 
 	r := gin.Default()
@@ -45,6 +46,11 @@ func main() {
 	r.POST("/login", auth.LoginHandler)
 	r.POST("/users", users.CreateUserHandler)
 	r.GET("/users/:id", users.GetUserHandler)
+
+	// Movie routes
+	r.GET("/api/movies", movies.ListMoviesHandler)
+	r.POST("/api/movies", movies.CreateMovieHandler)
+	r.GET("/api/genres", movies.ListGenresHandler)
 
 	// Admin login (public)
 	r.GET("/admin/login", admin.LoginFormHandler)
@@ -63,6 +69,20 @@ func main() {
 		adminGroup.GET("/users/:id/edit", users.EditUserFormHandler)
 		adminGroup.POST("/users/:id", users.UpdateUserHandler)        // For updates (PUT via _method)
 		adminGroup.POST("/users/:id/delete", users.DeleteUserHandler) // For deletes
+		// Movie admin routes
+		adminGroup.GET("/movies", movies.ListMoviesAdminHandler)
+		adminGroup.GET("/movies/new", movies.NewMovieFormHandler)
+		adminGroup.POST("/movies", movies.CreateMovieAdminHandler)
+		adminGroup.GET("/movies/:id/edit", movies.EditMovieFormHandler)
+		adminGroup.POST("/movies/:id", movies.UpdateMovieHandler)
+		adminGroup.POST("/movies/:id/delete", movies.DeleteMovieHandler)
+		// Genre admin routes
+		adminGroup.GET("/genres", movies.ListGenresAdminHandler)
+		adminGroup.GET("/genres/new", movies.NewGenreFormHandler)
+		adminGroup.POST("/genres", movies.CreateGenreAdminHandler)
+		adminGroup.GET("/genres/:id/edit", movies.EditGenreFormHandler)
+		adminGroup.POST("/genres/:id", movies.UpdateGenreHandler)
+		adminGroup.POST("/genres/:id/delete", movies.DeleteGenreHandler)
 	}
 
 	r.POST("/admin/logout", func(c *gin.Context) {

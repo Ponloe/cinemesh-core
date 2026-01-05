@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Users</title>
+    <title>Admin - Movies</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100">
@@ -15,7 +15,6 @@
                 <a href="/admin/users" class="mr-4">Users</a>
                 <a href="/admin/movies" class="mr-4">Movies</a>
                 <a href="/admin/genres" class="mr-4">Genres</a>
-                <a href="/admin/genres" class="mr-4">Genres</a>
                 <form action="/admin/logout" method="POST" class="inline">
                     <button type="submit" class="text-red-500">Logout</button>
                 </form>
@@ -23,8 +22,8 @@
         </div>
     </nav>
     <div class="container mx-auto p-4">
-        <h2 class="text-2xl font-bold mb-4">Users</h2>
-        <a href="/admin/users/new" class="bg-green-500 text-white px-4 py-2 rounded mb-4 inline-block">Add User</a>
+        <h2 class="text-2xl font-bold mb-4">Movies</h2>
+        <a href="/admin/movies/new" class="bg-green-500 text-white px-4 py-2 rounded mb-4 inline-block">Add Movie</a>
         <table class="table-auto w-full bg-white shadow">
             <thead>
                 <tr class="bg-gray-200">
@@ -32,27 +31,29 @@
                         <a href="?sort=id&order={{if eq .sort "id"}}{{if eq .order "asc"}}desc{{else}}asc{{end}}{{else}}asc{{end}}" class="{{if eq .sort "id"}}font-bold{{end}}">ID</a>
                     </th>
                     <th class="px-4 py-2">
-                        <a href="?sort=username&order={{if eq .sort "username"}}{{if eq .order "asc"}}desc{{else}}asc{{end}}{{else}}asc{{end}}" class="{{if eq .sort "username"}}font-bold{{end}}">Username</a>
+                        <a href="?sort=title&order={{if eq .sort "title"}}{{if eq .order "asc"}}desc{{else}}asc{{end}}{{else}}asc{{end}}" class="{{if eq .sort "title"}}font-bold{{end}}">Title</a>
                     </th>
                     <th class="px-4 py-2">
-                        <a href="?sort=email&order={{if eq .sort "email"}}{{if eq .order "asc"}}desc{{else}}asc{{end}}{{else}}asc{{end}}" class="{{if eq .sort "email"}}font-bold{{end}}">Email</a>
+                        <a href="?sort=release_date&order={{if eq .sort "release_date"}}{{if eq .order "asc"}}desc{{else}}asc{{end}}{{else}}asc{{end}}" class="{{if eq .sort "release_date"}}font-bold{{end}}">Release Date</a>
                     </th>
                     <th class="px-4 py-2">
-                        <a href="?sort=role&order={{if eq .sort "role"}}{{if eq .order "asc"}}desc{{else}}asc{{end}}{{else}}asc{{end}}" class="{{if eq .sort "role"}}font-bold{{end}}">Role</a>
+                        <a href="?sort=average_rating&order={{if eq .sort "average_rating"}}{{if eq .order "asc"}}desc{{else}}asc{{end}}{{else}}asc{{end}}" class="{{if eq .sort "average_rating"}}font-bold{{end}}">Rating</a>
                     </th>
+                    <th class="px-4 py-2">Genres</th>
                     <th class="px-4 py-2">Actions</th>
                 </tr>
             </thead>
             <tbody>
-                {{range .users}}
+                {{range .movies}}
                 <tr>
                     <td class="border px-4 py-2">{{.ID}}</td>
-                    <td class="border px-4 py-2">{{.Username}}</td>
-                    <td class="border px-4 py-2">{{.Email}}</td>
-                    <td class="border px-4 py-2">{{.Role}}</td>
+                    <td class="border px-4 py-2">{{.Title}}</td>
+                    <td class="border px-4 py-2">{{if .ReleaseDate}}{{.ReleaseDate.Format "2006-01-02"}}{{end}}</td>
+                    <td class="border px-4 py-2">{{.AverageRating}}</td>
+                    <td class="border px-4 py-2">{{range .Genres}}{{.Name}} {{end}}</td>
                     <td class="border px-4 py-2">
-                        <a href="/admin/users/{{.ID}}/edit" class="text-blue-500">Edit</a> |
-                        <form action="/admin/users/{{.ID}}/delete" method="POST" class="inline" onsubmit="return confirm('Delete user?')">
+                        <a href="/admin/movies/{{.ID}}/edit" class="text-blue-500">Edit</a> |
+                        <form action="/admin/movies/{{.ID}}/delete" method="POST" class="inline" onsubmit="return confirm('Delete movie?')">
                             <button type="submit" class="text-red-500">Delete</button>
                         </form>
                     </td>
