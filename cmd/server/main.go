@@ -76,6 +76,13 @@ func main() {
 		adminGroup.GET("/movies/:id/edit", movies.EditMovieFormHandler)
 		adminGroup.POST("/movies/:id", movies.UpdateMovieHandler)
 		adminGroup.POST("/movies/:id/delete", movies.DeleteMovieHandler)
+
+		// TMDb Integration Routes
+		adminGroup.GET("/tmdb/search", admin.TMDbSearchPageHandler)   // Show search page
+		adminGroup.GET("/tmdb/api/search", admin.TMDbSearchHandler)   // API endpoint for search
+		adminGroup.POST("/tmdb/import", admin.ImportFromTMDbHandler)  // Import movie
+		adminGroup.GET("/tmdb/prefill", admin.PrefillFromTMDbHandler) // Prefill form
+
 		// Genre admin routes
 		adminGroup.GET("/genres", movies.ListGenresAdminHandler)
 		adminGroup.GET("/genres/new", movies.NewGenreFormHandler)

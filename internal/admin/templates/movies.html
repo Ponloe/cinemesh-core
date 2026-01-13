@@ -23,13 +23,24 @@
     </nav>
     <div class="container mx-auto p-4">
         <h2 class="text-2xl font-bold mb-4">Movies</h2>
-        <a href="/admin/movies/new" class="bg-green-500 text-white px-4 py-2 rounded mb-4 inline-block">Add Movie</a>
+        
+        <!-- Updated Button Section -->
+        <div class="mb-4 flex gap-3">
+            <a href="/admin/movies/new" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">
+                ➕ Add Movie Manually
+            </a>
+            <a href="/admin/tmdb/search" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">
+                🎬 Import from TMDb
+            </a>
+        </div>
+
         <table class="table-auto w-full bg-white shadow">
             <thead>
                 <tr class="bg-gray-200">
                     <th class="px-4 py-2">
                         <a href="?sort=id&order={{if eq .sort "id"}}{{if eq .order "asc"}}desc{{else}}asc{{end}}{{else}}asc{{end}}" class="{{if eq .sort "id"}}font-bold{{end}}">ID</a>
                     </th>
+                    <th class="px-4 py-2">Poster</th>
                     <th class="px-4 py-2">
                         <a href="?sort=title&order={{if eq .sort "title"}}{{if eq .order "asc"}}desc{{else}}asc{{end}}{{else}}asc{{end}}" class="{{if eq .sort "title"}}font-bold{{end}}">Title</a>
                     </th>
@@ -47,14 +58,21 @@
                 {{range .movies}}
                 <tr>
                     <td class="border px-4 py-2">{{.ID}}</td>
+                    <td class="border px-4 py-2">
+                        {{if .PosterURL}}
+                            <img src="{{.PosterURL}}" alt="{{.Title}}" class="w-12 h-18 object-cover rounded">
+                        {{else}}
+                            <div class="w-12 h-18 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-400">No image</div>
+                        {{end}}
+                    </td>
                     <td class="border px-4 py-2">{{.Title}}</td>
                     <td class="border px-4 py-2">{{if .ReleaseDate}}{{.ReleaseDate.Format "2006-01-02"}}{{end}}</td>
                     <td class="border px-4 py-2">{{.AverageRating}}</td>
                     <td class="border px-4 py-2">{{range .Genres}}{{.Name}} {{end}}</td>
                     <td class="border px-4 py-2">
-                        <a href="/admin/movies/{{.ID}}/edit" class="text-blue-500">Edit</a> |
+                        <a href="/admin/movies/{{.ID}}/edit" class="text-blue-500 hover:underline">Edit</a> |
                         <form action="/admin/movies/{{.ID}}/delete" method="POST" class="inline" onsubmit="return confirm('Delete movie?')">
-                            <button type="submit" class="text-red-500">Delete</button>
+                            <button type="submit" class="text-red-500 hover:underline">Delete</button>
                         </form>
                     </td>
                 </tr>

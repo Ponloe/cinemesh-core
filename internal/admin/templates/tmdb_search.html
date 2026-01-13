@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Import from TMDb</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 text-white p-4">
+        <div class="container mx-auto flex justify-between">
+            <h1 class="text-xl font-bold">Cinemesh Admin</h1>
+            <div>
+                <a href="/admin" class="mr-4">Dashboard</a>
+                <a href="/admin/users" class="mr-4">Users</a>
+                <a href="/admin/movies" class="mr-4">Movies</a>
+                <a href="/admin/genres" class="mr-4">Genres</a>
+                <form action="/admin/logout" method="POST" class="inline">
+                    <button type="submit" class="text-red-500">Logout</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container mx-auto p-4">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold">Import Movie from TMDb</h2>
+            <a href="/admin/movies" class="text-blue-500 hover:underline">← Back to Movies</a>
+        </div>
+
+        <!-- Search Section -->
+        <div class="bg-white p-6 rounded shadow mb-6">
+            <div class="flex gap-3">
+                <input 
+                    type="text" 
+                    id="tmdbSearch" 
+                    placeholder="Search for a movie (e.g., Inception, The Matrix)..." 
+                    class="flex-1 p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onkeypress="if(event.key === 'Enter') searchTMDb()"
+                >
+                <button 
+                    onclick="searchTMDb()" 
+                    class="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 transition">
+                    🔍 Search
+                </button>
+            </div>
+            <p class="text-sm text-gray-500 mt-2">Search The Movie Database (TMDb) for movies to import</p>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loading" class="hidden text-center py-8">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <p class="mt-2 text-gray-600">Searching...</p>
+        </div>
+
+        <!-- Error Message -->
+        <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            <span id="errorText"></span>
+        </div>
+
+        <!-- Success Message -->
+        <div id="successMessage" class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            <span id="successText"></span>
+        </div>
+
+        <!-- Search Results -->
+        <div id="searchResults"></div>
+    </div>
+
+    <script>
+        async function searchTMDb() {
+        const query = document.getElementById('tmdbSearch').value.trim();
+        if (!query) {
+            showError('Please enter a movie title to search');
+            return;
+        }
+
+        hideMessages();
+        showLoading(true);
+        
+        try {
+            const response = await fetch(`/admin/tmdb/api/search?q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            
+            showLoading(false);
+            
+            if (!response.ok) {
+                showError(data.error || 'Search failed');
+                return;
+            }
+            
+            displayResults(data);
+        } catch (error) {
+            showLoading(false);
+            showError('Network error: ' + error.message);
+        }
+    }
+
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('searchResults');
+            
+            if (!data.results || data.results.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+                        No movies found. Try a different search term.
+                    </div>
+                `;
+                return;
+            }
+            
+            resultsDiv.innerHTML = `
+                <h3 class="text-xl font-bold mb-4">Search Results (${data.results.length})</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    ${data.results.slice(0, 12).map(movie => `
+                        <div class="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition">
+                            <div class="relative">
+                                ${movie.poster_path 
+                                    ? `<img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" 
+                                           alt="${movie.title}" 
+                                           class="w-full h-64 object-cover">`
+                                    : `<div class="w-full h-64 bg-gray-200 flex items-center justify-center">
+                                           <span class="text-gray-400">No Image</span>
+                                       </div>`
+                                }
+                                ${movie.vote_average 
+                                    ? `<div class="absolute top-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-sm">
+                                           ⭐ ${movie.vote_average.toFixed(1)}
+                                       </div>`
+                                    : ''
+                                }
+                            </div>
+                            <div class="p-4">
+                                <h4 class="font-bold text-lg mb-1">${movie.title}</h4>
+                                <p class="text-sm text-gray-600 mb-2">
+                                    ${movie.release_date ? new Date(movie.release_date).getFullYear() : 'No date'}
+                                </p>
+                                <p class="text-sm text-gray-700 mb-3 line-clamp-2">
+                                    ${movie.overview || 'No description available'}
+                                </p>
+                                <button 
+                                    onclick="importMovie(${movie.id}, '${movie.title.replace(/'/g, "\\'")}')" 
+                                    class="w-full bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">
+                                    ✓ Import Movie
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        async function importMovie(tmdbId, title) {
+            if (!confirm(`Import "${title}" into your database?`)) return;
+            
+            hideMessages();
+            
+            try {
+                const response = await fetch('/admin/tmdb/import', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({tmdb_id: tmdbId})
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    if (response.status === 409) {
+                        showError('This movie already exists in your database');
+                    } else {
+                        showError(data.error || 'Import failed');
+                    }
+                    return;
+                }
+                
+                showSuccess(`"${title}" imported successfully! Redirecting...`);
+                setTimeout(() => {
+                    window.location.href = '/admin/movies';
+                }, 2000);
+                
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            }
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('hidden', !show);
+            document.getElementById('searchResults').classList.toggle('hidden', show);
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            document.getElementById('errorText').textContent = message;
+            errorDiv.classList.remove('hidden');
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            document.getElementById('successText').textContent = message;
+            successDiv.classList.remove('hidden');
+        }
+
+        function hideMessages() {
+            document.getElementById('errorMessage').classList.add('hidden');
+            document.getElementById('successMessage').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
