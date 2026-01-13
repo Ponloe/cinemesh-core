@@ -3,6 +3,7 @@ package tmdb
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 const (
@@ -28,8 +29,13 @@ type Config struct {
 }
 
 func NewConfig() *Config {
+	apiKey := os.Getenv("TMDB_API_KEY")
+
+	apiKey = strings.TrimSpace(apiKey)
+	apiKey = strings.Trim(apiKey, "\"'")
+
 	return &Config{
-		APIKey: os.Getenv("TMDB_API_KEY"),
+		APIKey: apiKey,
 	}
 }
 

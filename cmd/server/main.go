@@ -20,6 +20,13 @@ func main() {
 		log.Println(".env not loaded, continuing with environment variables")
 	}
 
+	tmdbKey := os.Getenv("TMDB_API_KEY")
+	if tmdbKey == "" {
+		log.Println("WARNING: TMDB_API_KEY not set - TMDb features will not work")
+	} else {
+		log.Printf("✓ TMDB_API_KEY loaded: %s...%s", tmdbKey[:4], tmdbKey[len(tmdbKey)-4:])
+	}
+
 	if m := os.Getenv("GIN_MODE"); m != "" {
 		gin.SetMode(m)
 	}
@@ -28,14 +35,14 @@ func main() {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
 
-	// run migrations to create tables
 	if err := database.Migrate(&users.User{}, &movies.Movie{}, &movies.Genre{}, &movies.MovieGenre{}); err != nil {
 		log.Fatal(err)
 	}
 
+	admin.InitializeTMDb()
+
 	r := gin.Default()
 
-	// Load HTML templates
 	r.LoadHTMLGlob("internal/admin/templates/*")
 
 	r.GET("/health", func(c *gin.Context) {
@@ -67,8 +74,9 @@ func main() {
 		adminGroup.GET("/users/new", users.NewUserFormHandler)
 		adminGroup.POST("/users", users.CreateUserAdminHandler)
 		adminGroup.GET("/users/:id/edit", users.EditUserFormHandler)
-		adminGroup.POST("/users/:id", users.UpdateUserHandler)        // For updates (PUT via _method)
-		adminGroup.POST("/users/:id/delete", users.DeleteUserHandler) // For deletes
+		adminGroup.POST("/users/:id", users.UpdateUserHandler)
+		adminGroup.POST("/users/:id/delete", users.DeleteUserHandler)
+
 		// Movie admin routes
 		adminGroup.GET("/movies", movies.ListMoviesAdminHandler)
 		adminGroup.GET("/movies/new", movies.NewMovieFormHandler)
@@ -78,10 +86,10 @@ func main() {
 		adminGroup.POST("/movies/:id/delete", movies.DeleteMovieHandler)
 
 		// TMDb Integration Routes
-		adminGroup.GET("/tmdb/search", admin.TMDbSearchPageHandler)   // Show search page
-		adminGroup.GET("/tmdb/api/search", admin.TMDbSearchHandler)   // API endpoint for search
-		adminGroup.POST("/tmdb/import", admin.ImportFromTMDbHandler)  // Import movie
-		adminGroup.GET("/tmdb/prefill", admin.PrefillFromTMDbHandler) // Prefill form
+		adminGroup.GET("/tmdb/search", admin.TMDbSearchPageHandler)
+		adminGroup.GET("/tmdb/api/search", admin.TMDbSearchHandler)
+		adminGroup.POST("/tmdb/import", admin.ImportFromTMDbHandler)
+		adminGroup.GET("/tmdb/prefill", admin.PrefillFromTMDbHandler)
 
 		// Genre admin routes
 		adminGroup.GET("/genres", movies.ListGenresAdminHandler)
@@ -102,5 +110,6 @@ func main() {
 		port = "8080"
 	}
 
+	log.Printf("Starting server on port %s...", port)
 	r.Run(":" + port)
 }

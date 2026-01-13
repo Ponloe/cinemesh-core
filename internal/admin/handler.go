@@ -1,6 +1,8 @@
 package admin
 
 import (
+	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -18,11 +20,24 @@ var (
 	tmdbFetcher *tmdb.MovieFetcher
 )
 
-func init() {
-	// Initialize TMDb client
+func InitializeTMDb() {
+	log.Println("Initializing TMDb client...")
 	tmdbConfig := tmdb.NewConfig()
+
+	if tmdbConfig.APIKey == "" {
+		log.Println("ERROR: TMDB_API_KEY is empty!")
+	} else if len(tmdbConfig.APIKey) >= 8 {
+		log.Printf("TMDb API Key loaded: %s...%s (length: %d)",
+			tmdbConfig.APIKey[:4],
+			tmdbConfig.APIKey[len(tmdbConfig.APIKey)-4:],
+			len(tmdbConfig.APIKey))
+	} else {
+		log.Printf("WARNING: TMDB_API_KEY seems too short: %d characters", len(tmdbConfig.APIKey))
+	}
+
 	tmdbClient = tmdb.NewClient(tmdbConfig)
 	tmdbFetcher = tmdb.NewMovieFetcher(tmdbClient)
+	log.Println("TMDb client initialized successfully")
 }
 
 func DashboardHandler(c *gin.Context) {
@@ -65,17 +80,35 @@ func LoginPostHandler(c *gin.Context) {
 
 func TMDbSearchHandler(c *gin.Context) {
 	query := c.Query("q")
+	log.Printf("TMDb search requested for query: %s", query)
+
 	if query == "" {
+		log.Println("ERROR: Empty query parameter")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "query parameter required"})
 		return
 	}
 
-	results, err := tmdbClient.SearchMovies(query)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	if tmdbClient == nil {
+		log.Println("ERROR: TMDb client is nil")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "TMDb client not initialized",
+			"hint":  "Check server logs and TMDB_API_KEY in .env",
+		})
 		return
 	}
 
+	log.Printf("Calling TMDb API to search for: %s", query)
+	results, err := tmdbClient.SearchMovies(query)
+	if err != nil {
+		log.Printf("ERROR: TMDb search failed: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": fmt.Sprintf("TMDb API error: %v", err),
+			"query": query,
+		})
+		return
+	}
+
+	log.Printf("TMDb search successful: found %d results", len(results.Results))
 	c.JSON(http.StatusOK, results)
 }
 
@@ -103,6 +136,7 @@ func ImportFromTMDbHandler(c *gin.Context) {
 		})
 		return
 	}
+
 	var dbGenres []movies.Genre
 	for _, tmdbGenre := range movie.Genres {
 		var genre movies.Genre
