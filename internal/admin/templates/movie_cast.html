@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Cast - {{.movie.Title}}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 text-white p-4">
+        <div class="container mx-auto flex justify-between">
+            <h1 class="text-xl font-bold">Cinemesh Admin</h1>
+            <div>
+                <a href="/admin" class="mr-4">Dashboard</a>
+                <a href="/admin/users" class="mr-4">Users</a>
+                <a href="/admin/movies" class="mr-4">Movies</a>
+                <a href="/admin/genres" class="mr-4">Genres</a>
+                <a href="/admin/people" class="mr-4">People</a>
+                <form action="/admin/logout" method="POST" class="inline">
+                    <button type="submit" class="text-red-500">Logout</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-4">
+        <!-- Movie Header -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <div class="flex items-start gap-4">
+                {{if .movie.PosterURL}}
+                    <img src="{{.movie.PosterURL}}" alt="{{.movie.Title}}" class="w-32 h-48 object-cover rounded">
+                {{else}}
+                    <div class="w-32 h-48 bg-gray-200 rounded flex items-center justify-center text-gray-400">
+                        No Poster
+                    </div>
+                {{end}}
+                <div class="flex-1">
+                    <h2 class="text-3xl font-bold mb-2">{{.movie.Title}}</h2>
+                    <p class="text-gray-600 mb-2">
+                        {{if .movie.ReleaseDate}}Released: {{.movie.ReleaseDate.Format "January 2, 2006"}}{{end}}
+                    </p>
+                    <div class="flex gap-2 mb-3">
+                        {{range .movie.Genres}}
+                            <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded">{{.Name}}</span>
+                        {{end}}
+                    </div>
+                    <a href="/admin/movies" class="text-blue-500 hover:underline">← Back to Movies</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Cast Member Form -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h3 class="text-xl font-bold mb-4">➕ Add Cast/Crew Member</h3>
+            <form action="/admin/movies/{{.movie.ID}}/cast" method="POST" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Person</label>
+                        <select name="person_id" required class="w-full border rounded px-3 py-2">
+                            <option value="">Select person...</option>
+                            {{range .people}}
+                                <option value="{{.ID}}">{{.Name}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Role</label>
+                        <select name="role" required class="w-full border rounded px-3 py-2" id="roleSelect">
+                            <option value="Actor">Actor</option>
+                            <option value="Director">Director</option>
+                            <option value="Writer">Writer</option>
+                            <option value="Producer">Producer</option>
+                        </select>
+                    </div>
+                    <div id="characterField">
+                        <label class="block text-sm font-medium mb-1">Character Name</label>
+                        <input type="text" name="character_name" class="w-full border rounded px-3 py-2" placeholder="e.g., Tony Stark">
+                    </div>
+                </div>
+                <div>
+                    <button type="submit" class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition">
+                        Add to Cast
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Cast List -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h3 class="text-xl font-bold mb-4">🎭 Actors</h3>
+            {{$hasActors := false}}
+            {{range .cast}}
+                {{if eq .Role "Actor"}}
+                    {{$hasActors = true}}
+                {{end}}
+            {{end}}
+            
+            {{if $hasActors}}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {{range .cast}}
+                        {{if eq .Role "Actor"}}
+                            <div class="border rounded-lg p-4 flex items-start gap-3">
+                                {{if .Person.ProfileImageURL}}
+                                    <img src="{{.Person.ProfileImageURL}}" alt="{{.Person.Name}}" class="w-16 h-16 object-cover rounded-full">
+                                {{else}}
+                                    <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center text-2xl">
+                                        👤
+                                    </div>
+                                {{end}}
+                                <div class="flex-1">
+                                    <h4 class="font-bold">{{.Person.Name}}</h4>
+                                    {{if .CharacterName}}
+                                        <p class="text-sm text-gray-600">as {{.CharacterName}}</p>
+                                    {{end}}
+                                    {{if .CastOrder}}
+                                        <p class="text-xs text-gray-400 mt-1">Order: {{.CastOrder}}</p>
+                                    {{end}}
+                                    <form action="/admin/movies/{{$.movie.ID}}/cast/{{.PersonID}}/{{.Role}}/delete" method="POST" class="mt-2" onsubmit="return confirm('Remove from cast?')">
+                                        <button type="submit" class="text-xs text-red-500 hover:underline">Remove</button>
+                                    </form>
+                                </div>
+                            </div>
+                        {{end}}
+                    {{end}}
+                </div>
+            {{else}}
+                <p class="text-gray-400 italic">No actors added yet</p>
+            {{end}}
+        </div>
+
+        <!-- Crew List -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-xl font-bold mb-4">🎬 Crew</h3>
+            {{$hasCrew := false}}
+            {{range .cast}}
+                {{if ne .Role "Actor"}}
+                    {{$hasCrew = true}}
+                {{end}}
+            {{end}}
+            
+            {{if $hasCrew}}
+                <div class="space-y-3">
+                    {{range .cast}}
+                        {{if ne .Role "Actor"}}
+                            <div class="border rounded-lg p-4 flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    {{if .Person.ProfileImageURL}}
+                                        <img src="{{.Person.ProfileImageURL}}" alt="{{.Person.Name}}" class="w-12 h-12 object-cover rounded-full">
+                                    {{else}}
+                                        <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-xl">
+                                            👤
+                                        </div>
+                                    {{end}}
+                                    <div>
+                                        <h4 class="font-bold">{{.Person.Name}}</h4>
+                                        <p class="text-sm text-gray-600">{{.Role}}</p>
+                                    </div>
+                                </div>
+                                <form action="/admin/movies/{{$.movie.ID}}/cast/{{.PersonID}}/{{.Role}}/delete" method="POST" class="inline" onsubmit="return confirm('Remove from crew?')">
+                                    <button type="submit" class="text-red-500 hover:underline text-sm">Remove</button>
+                                </form>
+                            </div>
+                        {{end}}
+                    {{end}}
+                </div>
+            {{else}}
+                <p class="text-gray-400 italic">No crew members added yet</p>
+            {{end}}
+        </div>
+    </div>
+
+    <script>
+        // Show/hide character name field based on role
+        const roleSelect = document.getElementById('roleSelect');
+        const characterField = document.getElementById('characterField');
+        
+        roleSelect.addEventListener('change', function() {
+            if (this.value === 'Actor') {
+                characterField.style.display = 'block';
+            } else {
+                characterField.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

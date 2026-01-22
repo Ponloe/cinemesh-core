@@ -11,10 +11,11 @@
         <div class="container mx-auto flex justify-between">
             <h1 class="text-xl font-bold">Cinemesh Admin</h1>
             <div>
-                <a href="/admin" class="mr-4">Dashboard</a>
+                <a href="/admin" class="mr-4 font-bold border-b-2">Dashboard</a>
                 <a href="/admin/users" class="mr-4">Users</a>
                 <a href="/admin/movies" class="mr-4">Movies</a>
                 <a href="/admin/genres" class="mr-4">Genres</a>
+                <a href="/admin/people" class="mr-4">People</a>
                 <form action="/admin/logout" method="POST" class="inline">
                     <button type="submit" class="text-red-500">Logout</button>
                 </form>
@@ -25,20 +26,27 @@
         <h2 class="text-2xl font-bold mb-4">Dashboard</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <a href="/admin/users" class="bg-white p-6 rounded shadow hover:shadow-lg transition">
-                <h3 class="text-xl font-bold">👥 Users</h3>
-                <p class="text-gray-600">Manage user accounts</p>
+                <h3 class="text-lg font-semibold mb-2">👥 Users</h3>
+                <p class="text-3xl font-bold text-blue-600">{{.stats.userCount}}</p>
             </a>
             <a href="/admin/movies" class="bg-white p-6 rounded shadow hover:shadow-lg transition">
-                <h3 class="text-xl font-bold">🎬 Movies</h3>
-                <p class="text-gray-600">View and edit movies</p>
-            </a>
-            <a href="/admin/tmdb/search" class="bg-blue-50 border-2 border-blue-500 p-6 rounded shadow hover:shadow-lg transition">
-                <h3 class="text-xl font-bold text-blue-600">🌐 Import from TMDb</h3>
-                <p class="text-blue-700">Search and import movies</p>
+                <h3 class="text-lg font-semibold mb-2">🎬 Movies</h3>
+                <p class="text-3xl font-bold text-blue-600">{{.stats.movieCount}}</p>
             </a>
             <a href="/admin/genres" class="bg-white p-6 rounded shadow hover:shadow-lg transition">
-                <h3 class="text-xl font-bold">🎭 Genres</h3>
-                <p class="text-gray-600">Manage movie genres</p>
+                <h3 class="text-lg font-semibold mb-2">🎭 Genres</h3>
+                <p class="text-3xl font-bold text-blue-600">{{.stats.genreCount}}</p>
+            </a>
+            <a href="/admin/people" class="bg-white p-6 rounded shadow hover:shadow-lg transition">
+                <h3 class="text-lg font-semibold mb-2">⭐ People</h3>
+                <p class="text-3xl font-bold text-blue-600">{{.stats.peopleCount}}</p>
+            </a>
+        </div>
+        
+        <div class="mt-6">
+            <a href="/admin/tmdb/search" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition inline-flex items-center gap-2 text-lg font-medium">
+                <span>🎬</span>
+                <span>Import from TMDb</span>
             </a>
         </div>
     </div>

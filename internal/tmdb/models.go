@@ -1,6 +1,8 @@
 package tmdb
 
-import "time"
+import (
+	"time"
+)
 
 type MovieSearchResponse struct {
 	Page         int           `json:"page"`
@@ -60,4 +62,34 @@ type ReleaseDate struct {
 
 type GenreListResponse struct {
 	Genres []Genre `json:"genres"`
+}
+
+type TMDbCastMember struct {
+	ID                 int    `json:"id"`
+	Name               string `json:"name"`
+	Character          string `json:"character"`
+	Order              int    `json:"order"`
+	ProfilePath        string `json:"profile_path"`
+	KnownForDepartment string `json:"known_for_department"`
+}
+
+type TMDbCrewMember struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Job         string `json:"job"`
+	Department  string `json:"department"`
+	ProfilePath string `json:"profile_path"`
+}
+
+type TMDbCredits struct {
+	Cast []TMDbCastMember `json:"cast"`
+	Crew []TMDbCrewMember `json:"crew"`
+}
+
+type TMDbPersonDetail struct {
+	ID          int     `json:"id"`
+	Name        string  `json:"name"`
+	Biography   string  `json:"biography"`
+	Birthday    *string `json:"birthday"`
+	ProfilePath string  `json:"profile_path"`
 }

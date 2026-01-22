@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - People</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 text-white p-4">
+        <div class="container mx-auto flex justify-between">
+            <h1 class="text-xl font-bold">Cinemesh Admin</h1>
+            <div>
+                <a href="/admin" class="mr-4">Dashboard</a>
+                <a href="/admin/users" class="mr-4">Users</a>
+                <a href="/admin/movies" class="mr-4">Movies</a>
+                <a href="/admin/genres" class="mr-4">Genres</a>
+                <a href="/admin/people" class="mr-4 font-bold border-b-2">People</a>
+                <form action="/admin/logout" method="POST" class="inline">
+                    <button type="submit" class="text-red-500">Logout</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+    <div class="container mx-auto p-4">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold">People (Cast & Crew)</h2>
+            <div class="text-gray-600">
+                Total: <span class="font-bold">{{len .people}}</span> people
+            </div>
+        </div>
+        
+        {{if .people}}
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <table class="table-auto w-full">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="px-4 py-3 text-left">ID</th>
+                            <th class="px-4 py-3 text-left">Photo</th>
+                            <th class="px-4 py-3 text-left">Name</th>
+                            <th class="px-4 py-3 text-left">Movies</th>
+                            <th class="px-4 py-3 text-left">TMDb ID</th>
+                            <th class="px-4 py-3 text-left">Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range .people}}
+                        <tr class="border-t hover:bg-gray-50">
+                            <td class="px-4 py-3 text-gray-600">{{.ID}}</td>
+                            <td class="px-4 py-3">
+                                {{if .ProfileImageURL}}
+                                    <img src="{{.ProfileImageURL}}" alt="{{.Name}}" class="w-16 h-16 object-cover rounded-full border-2 border-gray-200">
+                                {{else}}
+                                    <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                                        {{slice .Name 0 1}}
+                                    </div>
+                                {{end}}
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="font-bold text-lg">{{.Name}}</div>
+                                {{if .BirthDate}}
+                                    <div class="text-sm text-gray-500">Born: {{.BirthDate.Format "Jan 2, 2006"}}</div>
+                                {{end}}
+                            </td>
+                            <td class="px-4 py-3">
+                                {{if gt .MovieCount 0}}
+                                    <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                                        {{.MovieCount}} movie{{if gt .MovieCount 1}}s{{end}}
+                                    </span>
+                                {{else}}
+                                    <span class="text-gray-400 italic text-sm">No movies</span>
+                                {{end}}
+                            </td>
+                            <td class="px-4 py-3">
+                                {{if .TMDbID}}
+                                    <a href="https://www.themoviedb.org/person/{{.TMDbID}}" target="_blank" class="text-blue-500 hover:underline text-sm">
+                                        {{.TMDbID}} ↗
+                                    </a>
+                                {{else}}
+                                    <span class="text-gray-400">-</span>
+                                {{end}}
+                            </td>
+                            <td class="px-4 py-3 text-sm text-gray-500">
+                                {{.CreatedAt.Format "Jan 2, 2006"}}
+                            </td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+            </div>
+        {{else}}
+            <div class="bg-white rounded-lg shadow p-12 text-center">
+                <div class="text-6xl mb-4">👥</div>
+                <h3 class="text-xl font-bold text-gray-700 mb-2">No People Yet</h3>
+                <p class="text-gray-500 mb-4">Import movies from TMDb to automatically add cast and crew members.</p>
+                <a href="/admin/tmdb/search" class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 transition inline-block">
+                    🎬 Import from TMDb
+                </a>
+            </div>
+        {{end}}
+    </div>
+</body>
+</html>

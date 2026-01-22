@@ -54,7 +54,10 @@ func ListMoviesAdminHandler(c *gin.Context) {
 	}
 
 	var movies []Movie
-	query := database.DB.Preload("Genres").Order(sort + " " + order)
+	query := database.DB.Preload("Genres").
+		Preload("Cast.Person").
+		Order(sort + " " + order)
+
 	if err := query.Find(&movies).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "error.html", gin.H{"error": err.Error()})
 		return
@@ -320,4 +323,138 @@ func DeleteGenreHandler(c *gin.Context) {
 		return
 	}
 	c.Redirect(http.StatusFound, "/admin/genres")
+}
+
+func ManageCastHandler(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		c.String(http.StatusBadRequest, "Invalid movie ID")
+		return
+	}
+
+	var movie Movie
+	if err := database.DB.
+		Preload("Genres").
+		Preload("Cast.Person").
+		First(&movie, id).Error; err != nil {
+		c.String(http.StatusNotFound, "Movie not found")
+		return
+	}
+
+	// Get all people for dropdown
+	var people []Person
+	database.DB.Order("name ASC").Find(&people)
+
+	c.HTML(http.StatusOK, "movie_cast.html", gin.H{
+		"movie":  movie,
+		"cast":   movie.Cast,
+		"people": people,
+	})
+}
+
+func AddCastMemberHandler(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		c.String(http.StatusBadRequest, "Invalid movie ID")
+		return
+	}
+
+	personIDStr := c.PostForm("person_id")
+	personID, err := strconv.ParseUint(personIDStr, 10, 64)
+	if err != nil {
+		c.String(http.StatusBadRequest, "Invalid person ID")
+		return
+	}
+
+	role := c.PostForm("role")
+	characterName := c.PostForm("character_name")
+
+	// Validate role
+	validRoles := map[string]bool{
+		"Actor":    true,
+		"Director": true,
+		"Writer":   true,
+		"Producer": true,
+	}
+	if !validRoles[role] {
+		c.String(http.StatusBadRequest, "Invalid role")
+		return
+	}
+
+	// Create movie person relationship
+	moviePerson := MoviePerson{
+		MovieID:       uint(id),
+		PersonID:      uint(personID),
+		Role:          role,
+		CharacterName: characterName,
+	}
+
+	if err := database.DB.Create(&moviePerson).Error; err != nil {
+		c.String(http.StatusInternalServerError, "Failed to add cast member: "+err.Error())
+		return
+	}
+
+	c.Redirect(http.StatusFound, "/admin/movies/"+idStr+"/cast")
+}
+
+func RemoveCastMemberHandler(c *gin.Context) {
+	movieIDStr := c.Param("id")
+	movieID, err := strconv.ParseUint(movieIDStr, 10, 64)
+	if err != nil {
+		c.String(http.StatusBadRequest, "Invalid movie ID")
+		return
+	}
+
+	personIDStr := c.Param("person_id")
+	personID, err := strconv.ParseUint(personIDStr, 10, 64)
+	if err != nil {
+		c.String(http.StatusBadRequest, "Invalid person ID")
+		return
+	}
+
+	role := c.Param("role")
+
+	// Delete the relationship
+	if err := database.DB.Where("movie_id = ? AND person_id = ? AND role = ?", movieID, personID, role).
+		Delete(&MoviePerson{}).Error; err != nil {
+		c.String(http.StatusInternalServerError, "Failed to remove cast member")
+		return
+	}
+
+	c.Redirect(http.StatusFound, "/admin/movies/"+movieIDStr+"/cast")
+}
+
+func ListPeopleAdminHandler(c *gin.Context) {
+	var people []Person
+
+	// Get all people with movie count
+	type PersonWithCount struct {
+		Person
+		MovieCount int64 `json:"movie_count"`
+	}
+
+	var peopleWithCounts []PersonWithCount
+
+	// First get all people
+	if err := database.DB.Order("name ASC").Find(&people).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{"error": err.Error()})
+		return
+	}
+
+	// For each person, count their movies
+	for _, person := range people {
+		var count int64
+		database.DB.Model(&MoviePerson{}).Where("person_id = ?", person.ID).Count(&count)
+
+		peopleWithCounts = append(peopleWithCounts, PersonWithCount{
+			Person:     person,
+			MovieCount: count,
+		})
+	}
+
+	c.HTML(http.StatusOK, "people.html", gin.H{
+		"people": peopleWithCounts,
+	})
 }

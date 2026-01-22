@@ -1,6 +1,7 @@
 package main
 
 import (
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -35,13 +36,27 @@ func main() {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
 
-	if err := database.Migrate(&users.User{}, &movies.Movie{}, &movies.Genre{}, &movies.MovieGenre{}); err != nil {
+	if err := database.Migrate(
+		&users.User{},
+		&movies.Movie{},
+		&movies.Genre{},
+		&movies.MovieGenre{},
+		&movies.Person{},
+		&movies.MoviePerson{},
+	); err != nil {
 		log.Fatal(err)
 	}
 
 	admin.InitializeTMDb()
 
 	r := gin.Default()
+
+	// Register custom template functions
+	r.SetFuncMap(template.FuncMap{
+		"add": func(a, b int) int {
+			return a + b
+		},
+	})
 
 	r.LoadHTMLGlob("internal/admin/templates/*")
 
@@ -90,6 +105,14 @@ func main() {
 		adminGroup.GET("/tmdb/api/search", admin.TMDbSearchHandler)
 		adminGroup.POST("/tmdb/import", admin.ImportFromTMDbHandler)
 		adminGroup.GET("/tmdb/prefill", admin.PrefillFromTMDbHandler)
+
+		// Cast management routes - Add these
+		adminGroup.GET("/movies/:id/cast", movies.ManageCastHandler)
+		adminGroup.POST("/movies/:id/cast", movies.AddCastMemberHandler)
+		adminGroup.POST("/movies/:id/cast/:person_id/:role/delete", movies.RemoveCastMemberHandler)
+
+		// Person admin routes
+		adminGroup.GET("/people", movies.ListPeopleAdminHandler)
 
 		// Genre admin routes
 		adminGroup.GET("/genres", movies.ListGenresAdminHandler)

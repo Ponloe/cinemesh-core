@@ -110,3 +110,42 @@ func (c *Client) GetGenres() ([]Genre, error) {
 
 	return result.Genres, nil
 }
+
+func (c *Client) FetchMovieCredits(tmdbID int) (*TMDbCredits, error) {
+	endpoint := fmt.Sprintf("/movie/%d/credits", tmdbID)
+
+	body, err := c.get(endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var credits TMDbCredits
+	if err := json.Unmarshal(body, &credits); err != nil {
+		return nil, fmt.Errorf("unmarshal credits: %w", err)
+	}
+
+	return &credits, nil
+}
+
+func (c *Client) FetchPersonDetails(tmdbID int) (*TMDbPersonDetail, error) {
+	endpoint := fmt.Sprintf("/person/%d", tmdbID)
+
+	body, err := c.get(endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var person TMDbPersonDetail
+	if err := json.Unmarshal(body, &person); err != nil {
+		return nil, fmt.Errorf("unmarshal person: %w", err)
+	}
+
+	return &person, nil
+}
+
+func (c *Client) GetFullImageURL(path string) string {
+	if path == "" {
+		return ""
+	}
+	return fmt.Sprintf("https://image.tmdb.org/t/p/w500%s", path)
+}
