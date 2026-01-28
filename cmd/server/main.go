@@ -10,6 +10,7 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/Ponloe/cinemesh-core/internal/admin"
+	"github.com/Ponloe/cinemesh-core/internal/api"
 	"github.com/Ponloe/cinemesh-core/internal/auth"
 	"github.com/Ponloe/cinemesh-core/internal/database"
 	"github.com/Ponloe/cinemesh-core/internal/movies"
@@ -64,24 +65,52 @@ func main() {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
-	// Auth routes
+	// ============================================
+	// HOME PAGE - API Documentation
+	// ============================================
+	r.GET("/", api.APIDocsHandler) // Direct render instead of redirect
+
+	// ============================================
+	// PUBLIC API ROUTES (No Auth Required)
+	// ============================================
+	publicAPI := r.Group("/api/public")
+	{
+		// API Documentation (also available at root /)
+		publicAPI.GET("/docs", api.APIDocsHandler)
+
+		// Movies
+		publicAPI.GET("/movies", api.ListMoviesPublicHandler)
+		publicAPI.GET("/movies/:id", api.GetMoviePublicHandler)
+
+		// Genres
+		publicAPI.GET("/genres", api.ListGenresPublicHandler)
+		publicAPI.GET("/genres/:id", api.GetGenrePublicHandler)
+
+		// People
+		publicAPI.GET("/people", api.ListPeoplePublicHandler)
+		publicAPI.GET("/people/:id", api.GetPersonPublicHandler)
+
+		// Search & Stats
+		publicAPI.GET("/search", api.SearchPublicHandler)
+		publicAPI.GET("/stats", api.GetStatsPublicHandler)
+	}
+
+	// ============================================
+	// AUTH ROUTES
+	// ============================================
 	r.POST("/login", auth.LoginHandler)
 	r.POST("/users", users.CreateUserHandler)
 	r.GET("/users/:id", users.GetUserHandler)
 
-	// Movie routes
-	r.GET("/api/movies", movies.ListMoviesHandler)
-	r.POST("/api/movies", movies.CreateMovieHandler)
-	r.GET("/api/genres", movies.ListGenresHandler)
-
-	// Admin login (public)
-	r.GET("/admin/login", admin.LoginFormHandler)
-	r.POST("/admin/login", admin.LoginPostHandler)
-
 	// Protected routes
 	r.GET("/me", auth.RequireAuth(), auth.MeHandler)
 
-	// Admin routes (protected by auth + admin role)
+	// ============================================
+	// ADMIN ROUTES (Protected)
+	// ============================================
+	r.GET("/admin/login", admin.LoginFormHandler)
+	r.POST("/admin/login", admin.LoginPostHandler)
+
 	adminGroup := r.Group("/admin", auth.RequireAuth(), auth.RequireAdmin())
 	{
 		adminGroup.GET("/", admin.DashboardHandler)
@@ -106,7 +135,7 @@ func main() {
 		adminGroup.POST("/tmdb/import", admin.ImportFromTMDbHandler)
 		adminGroup.GET("/tmdb/prefill", admin.PrefillFromTMDbHandler)
 
-		// Cast management routes - Add these
+		// Cast management routes
 		adminGroup.GET("/movies/:id/cast", movies.ManageCastHandler)
 		adminGroup.POST("/movies/:id/cast", movies.AddCastMemberHandler)
 		adminGroup.POST("/movies/:id/cast/:person_id/:role/delete", movies.RemoveCastMemberHandler)
@@ -133,6 +162,8 @@ func main() {
 		port = "8080"
 	}
 
-	log.Printf("Starting server on port %s...", port)
+	log.Printf("Server starting on port %s", port)
+	log.Printf("Home/API Docs: http://localhost:%s", port)
+	log.Printf("Admin Panel: http://localhost:%s/admin", port)
 	r.Run(":" + port)
 }

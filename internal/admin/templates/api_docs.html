@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cinemesh Core - Public API Documentation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+        }
+        .endpoint {
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <nav class="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold">Cinemesh Core API</h1>
+                <p class="text-sm text-blue-100">Public API Documentation v1.0</p>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-8 max-w-6xl">
+        <!-- Introduction -->
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h2 class="text-3xl font-bold mb-4 text-gray-800">📚 Introduction</h2>
+            <p class="text-gray-600 mb-4">
+                Welcome to the Cinemesh Core API! This RESTful API provides access to our movie database for 
+                integration with external applications like forums, movie theaters, and online movie finders.
+            </p>
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                <p class="font-semibold text-blue-800">Base URL</p>
+                <code class="text-blue-600">{{.baseURL}}/api/public</code>
+            </div>
+            <div class="mt-4 bg-green-50 border-l-4 border-green-500 p-4 rounded">
+                <p class="font-semibold text-green-800">✅ No Authentication Required</p>
+                <p class="text-green-700 text-sm mt-1">All endpoints are publicly accessible. No API key needed.</p>
+            </div>
+        </div>
+
+        <!-- Quick Start -->
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">🚀 Quick Start</h2>
+            <p class="text-gray-600 mb-4">Try your first API call:</p>
+            <div class="code-block">
+curl {{.baseURL}}/api/public/movies?limit=5
+            </div>
+            <button onclick="testAPI()" class="mt-4 bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition font-medium">
+                🧪 Test API Call
+            </button>
+            <div id="testResult" class="mt-4"></div>
+        </div>
+
+        <!-- Movies Endpoints -->
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800 flex items-center">
+                <span class="text-3xl mr-3">🎬</span> Movies
+            </h2>
+
+            <!-- List Movies -->
+            <div class="mb-8 border-l-4 border-blue-500 pl-6">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="bg-green-500 text-white px-3 py-1 rounded text-sm font-bold">GET</span>
+                    <code class="endpoint text-lg">/movies</code>
+                </div>
+                <p class="text-gray-600 mb-3">Get paginated list of movies</p>
+                
+                <h4 class="font-semibold text-gray-700 mb-2">Query Parameters:</h4>
+                <table class="w-full text-sm mb-4">
+                    <tr class="border-b">
+                        <td class="py-2 font-mono text-blue-600">page</td>
+                        <td class="py-2 text-gray-600">integer</td>
+                        <td class="py-2 text-gray-500">Page number (default: 1)</td>
+                    </tr>
+                    <tr class="border-b">
+                        <td class="py-2 font-mono text-blue-600">limit</td>
+                        <td class="py-2 text-gray-600">integer</td>
+                        <td class="py-2 text-gray-500">Items per page (default: 20, max: 100)</td>
+                    </tr>
+                    <tr class="border-b">
+                        <td class="py-2 font-mono text-blue-600">search</td>
+                        <td class="py-2 text-gray-600">string</td>
+                        <td class="py-2 text-gray-500">Search by title</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2 font-mono text-blue-600">genre</td>
+                        <td class="py-2 text-gray-600">string</td>
+                        <td class="py-2 text-gray-500">Filter by genre name</td>
+                    </tr>
+                </table>
+
+                <h4 class="font-semibold text-gray-700 mb-2">Example:</h4>
+                <div class="code-block text-sm">
+GET /api/public/movies?page=1&limit=10&search=inception
+                </div>
+
+                <h4 class="font-semibold text-gray-700 mb-2 mt-4">Response:</h4>
+                <div class="code-block text-sm">
+{
+  "data": [
+    {
+      "id": 1,
+      "title": "Inception",
+      "slug": "inception",
+      "release_date": "2010-07-16T00:00:00Z",
+      "duration_minutes": 148,
+      "synopsis": "A thief who steals...",
+      "poster_url": "https://...",
+      "backdrop_url": "https://...",
+      "average_rating": 8.8,
+      "mpaa_rating": "PG-13",
+      "tmdb_id": 27205,
+      "genres": [...],
+      "cast": [...]
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 42,
+    "totalPages": 5
+  }
+}
+                </div>
+            </div>
+
+            <!-- Get Movie -->
+            <div class="mb-8 border-l-4 border-green-500 pl-6">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="bg-green-500 text-white px-3 py-1 rounded text-sm font-bold">GET</span>
+                    <code class="endpoint text-lg">/movies/:id</code>
+                </div>
+                <p class="text-gray-600 mb-3">Get a single movie by ID or slug</p>
+                
+                <h4 class="font-semibold text-gray-700 mb-2">Example:</h4>
+                <div class="code-block text-sm">
+GET /api/public/movies/1
+GET /api/public/movies/inception
+                </div>
+            </div>
+        </div>
+
+        <!-- Genres Endpoints -->
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800 flex items-center">
+                <span class="text-3xl mr-3">🎭</span> Genres
+            </h2>
+
+            <div class="mb-8 border-l-4 border-purple-500 pl-6">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="bg-green-500 text-white px-3 py-1 rounded text-sm font-bold">GET</span>
+                    <code class="endpoint text-lg">/genres</code>
+                </div>
+                <p class="text-gray-600 mb-3">Get all genres</p>
+                
+                <h4 class="font-semibold text-gray-700 mb-2">Example:</h4>
+                <div class="code-block text-sm">
+GET /api/public/genres
+                </div>
+            </div>
+
+            <div class="border-l-4 border-purple-500 pl-6">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="bg-green-500 text-white px-3 py-1 rounded text-sm font-bold">GET</span>
+                    <code class="endpoint text-lg">/genres/:id</code>
+                </div>
+                <p class="text-gray-600 mb-3">Get a genre with its movies (by ID or name)</p>
+                
+                <h4 class="font-semibold text-gray-700 mb-2">Example:</h4>
+                <div class="code-block text-sm">
+GET /api/public/genres/1
+GET /api/public/genres/action
+                </div>
+            </div>
+        </div>
+
+        <!-- People Endpoints -->
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800 flex items-center">
+                <span class="text-3xl mr-3">⭐</span> People (Cast & Crew)
+            </h2>
+
+            <div class="mb-8 border-l-4 border-yellow-500 pl-6">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="bg-green-500 text-white px-3 py-1 rounded text-sm font-bold">GET</span>
+                    <code class="endpoint text-lg">/people</code>
+                </div>
+                <p class="text-gray-600 mb-3">Get paginated list of people</p>
+                
+                <h4 class="font-semibold text-gray-700 mb-2">Query Parameters:</h4>
+                <table class="w-full text-sm mb-4">
+                    <tr class="border-b">
+                        <td class="py-2 font-mono text-blue-600">page</td>
+                        <td class="py-2 text-gray-600">integer</td>
+                        <td class="py-2 text-gray-500">Page number</td>
+                    </tr>
+                    <tr class="border-b">
+                        <td class="py-2 font-mono text-blue-600">limit</td>
+                        <td class="py-2 text-gray-600">integer</td>
+                        <td class="py-2 text-gray-500">Items per page</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2 font-mono text-blue-600">search</td>
+                        <td class="py-2 text-gray-600">string</td>
+                        <td class="py-2 text-gray-500">Search by name</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="border-l-4 border-yellow-500 pl-6">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="bg-green-500 text-white px-3 py-1 rounded text-sm font-bold">GET</span>
+                    <code class="endpoint text-lg">/people/:id</code>
+                </div>
+                <p class="text-gray-600 mb-3">Get a person with their movies and roles</p>
+            </div>
+        </div>
+
+        <!-- Search Endpoint -->
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800 flex items-center">
+                <span class="text-3xl mr-3">🔍</span> Global Search
+            </h2>
+
+            <div class="border-l-4 border-red-500 pl-6">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="bg-green-500 text-white px-3 py-1 rounded text-sm font-bold">GET</span>
+                    <code class="endpoint text-lg">/search</code>
+                </div>
+                <p class="text-gray-600 mb-3">Search across movies, people, and genres</p>
+                
+                <h4 class="font-semibold text-gray-700 mb-2">Query Parameters:</h4>
+                <table class="w-full text-sm mb-4">
+                    <tr>
+                        <td class="py-2 font-mono text-blue-600">q</td>
+                        <td class="py-2 text-gray-600">string</td>
+                        <td class="py-2 text-gray-500">Search query (required)</td>
+                    </tr>
+                </table>
+
+                <h4 class="font-semibold text-gray-700 mb-2">Example:</h4>
+                <div class="code-block text-sm">
+GET /api/public/search?q=nolan
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Endpoint -->
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800 flex items-center">
+                <span class="text-3xl mr-3">📊</span> Statistics
+            </h2>
+
+            <div class="border-l-4 border-indigo-500 pl-6">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="bg-green-500 text-white px-3 py-1 rounded text-sm font-bold">GET</span>
+                    <code class="endpoint text-lg">/stats</code>
+                </div>
+                <p class="text-gray-600 mb-3">Get database statistics</p>
+                
+                <h4 class="font-semibold text-gray-700 mb-2">Response:</h4>
+                <div class="code-block text-sm">
+{
+  "data": {
+    "total_movies": 150,
+    "total_genres": 20,
+    "total_people": 450
+  }
+}
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Handling -->
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">⚠️ Error Handling</h2>
+            <p class="text-gray-600 mb-4">All errors follow this format:</p>
+            <div class="code-block text-sm mb-4">
+{
+  "error": "Error message description"
+}
+            </div>
+            
+            <h4 class="font-semibold text-gray-700 mb-2">HTTP Status Codes:</h4>
+            <table class="w-full text-sm">
+                <tr class="border-b">
+                    <td class="py-2 font-mono text-green-600">200</td>
+                    <td class="py-2 text-gray-600">Success</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="py-2 font-mono text-yellow-600">400</td>
+                    <td class="py-2 text-gray-600">Bad Request (invalid parameters)</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="py-2 font-mono text-orange-600">404</td>
+                    <td class="py-2 text-gray-600">Not Found</td>
+                </tr>
+                <tr>
+                    <td class="py-2 font-mono text-red-600">500</td>
+                    <td class="py-2 text-gray-600">Internal Server Error</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <footer class="bg-gray-800 text-white py-8 mt-12">
+        <div class="container mx-auto text-center">
+            <p class="text-gray-400">Cinemesh Core API v1.0 | Built for integration with external applications</p>
+            <p class="text-gray-500 text-sm mt-2">No authentication required • Open for public use</p>
+        </div>
+    </footer>
+
+    <script>
+        async function testAPI() {
+            const resultDiv = document.getElementById('testResult');
+            resultDiv.innerHTML = '<div class="text-blue-600">Loading...</div>';
+            
+            try {
+                const response = await fetch('{{.baseURL}}/api/public/movies?limit=3');
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <p class="text-green-800 font-semibold mb-2">✅ Success! Found ${data.pagination.total} movies</p>
+                        <pre class="code-block text-xs overflow-x-auto">${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <p class="text-red-800 font-semibold">❌ Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
