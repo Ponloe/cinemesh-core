@@ -5,7 +5,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 
@@ -51,6 +53,18 @@ func main() {
 	admin.InitializeTMDb()
 
 	r := gin.Default()
+
+	// ============================================
+	// CORS CONFIGURATION
+	// ============================================
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:3001"}, // frontend URLs
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true, // Allow cookies
+		MaxAge:           12 * time.Hour,
+	}))
 
 	// Register custom template functions
 	r.SetFuncMap(template.FuncMap{

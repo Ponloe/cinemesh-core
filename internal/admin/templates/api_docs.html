@@ -51,7 +51,7 @@
             <h2 class="text-2xl font-bold mb-4 text-gray-800">🚀 Quick Start</h2>
             <p class="text-gray-600 mb-4">Try your first API call:</p>
             <div class="code-block">
-curl {{.baseURL}}/api/public/movies?limit=5
+                curl {{.baseURL}}/api/public/movies?limit=5
             </div>
             <button onclick="testAPI()" class="mt-4 bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition font-medium">
                 🧪 Test API Call
@@ -99,36 +99,36 @@ curl {{.baseURL}}/api/public/movies?limit=5
 
                 <h4 class="font-semibold text-gray-700 mb-2">Example:</h4>
                 <div class="code-block text-sm">
-GET /api/public/movies?page=1&limit=10&search=inception
+                    GET /api/public/movies?page=1&limit=10&search=inception
                 </div>
 
                 <h4 class="font-semibold text-gray-700 mb-2 mt-4">Response:</h4>
                 <div class="code-block text-sm">
-{
-  "data": [
-    {
-      "id": 1,
-      "title": "Inception",
-      "slug": "inception",
-      "release_date": "2010-07-16T00:00:00Z",
-      "duration_minutes": 148,
-      "synopsis": "A thief who steals...",
-      "poster_url": "https://...",
-      "backdrop_url": "https://...",
-      "average_rating": 8.8,
-      "mpaa_rating": "PG-13",
-      "tmdb_id": 27205,
-      "genres": [...],
-      "cast": [...]
-    }
-  ],
-  "pagination": {
-    "page": 1,
-    "limit": 10,
-    "total": 42,
-    "totalPages": 5
-  }
-}
+                    {
+                    "data": [
+                        {
+                        "id": 1,
+                        "title": "Inception",
+                        "slug": "inception",
+                        "release_date": "2010-07-16T00:00:00Z",
+                        "duration_minutes": 148,
+                        "synopsis": "A thief who steals...",
+                        "poster_url": "https://...",
+                        "backdrop_url": "https://...",
+                        "average_rating": 8.8,
+                        "mpaa_rating": "PG-13",
+                        "tmdb_id": 27205,
+                        "genres": [...],
+                        "cast": [...]
+                        }
+                    ],
+                    "pagination": {
+                        "page": 1,
+                        "limit": 10,
+                        "total": 42,
+                        "totalPages": 5
+                    }
+                    }
                 </div>
             </div>
 
@@ -142,8 +142,8 @@ GET /api/public/movies?page=1&limit=10&search=inception
                 
                 <h4 class="font-semibold text-gray-700 mb-2">Example:</h4>
                 <div class="code-block text-sm">
-GET /api/public/movies/1
-GET /api/public/movies/inception
+                    GET /api/public/movies/1
+                    GET /api/public/movies/inception
                 </div>
             </div>
         </div>
@@ -163,7 +163,7 @@ GET /api/public/movies/inception
                 
                 <h4 class="font-semibold text-gray-700 mb-2">Example:</h4>
                 <div class="code-block text-sm">
-GET /api/public/genres
+                    GET /api/public/genres
                 </div>
             </div>
 
@@ -176,8 +176,8 @@ GET /api/public/genres
                 
                 <h4 class="font-semibold text-gray-700 mb-2">Example:</h4>
                 <div class="code-block text-sm">
-GET /api/public/genres/1
-GET /api/public/genres/action
+                    GET /api/public/genres/1
+                    GET /api/public/genres/action
                 </div>
             </div>
         </div>
@@ -248,7 +248,7 @@ GET /api/public/genres/action
 
                 <h4 class="font-semibold text-gray-700 mb-2">Example:</h4>
                 <div class="code-block text-sm">
-GET /api/public/search?q=nolan
+                    GET /api/public/search?q=nolan
                 </div>
             </div>
         </div>
@@ -268,13 +268,13 @@ GET /api/public/search?q=nolan
                 
                 <h4 class="font-semibold text-gray-700 mb-2">Response:</h4>
                 <div class="code-block text-sm">
-{
-  "data": {
-    "total_movies": 150,
-    "total_genres": 20,
-    "total_people": 450
-  }
-}
+                    {
+                    "data": {
+                        "total_movies": 150,
+                        "total_genres": 20,
+                        "total_people": 450
+                    }
+                    }
                 </div>
             </div>
         </div>
@@ -284,9 +284,9 @@ GET /api/public/search?q=nolan
             <h2 class="text-2xl font-bold mb-6 text-gray-800">⚠️ Error Handling</h2>
             <p class="text-gray-600 mb-4">All errors follow this format:</p>
             <div class="code-block text-sm mb-4">
-{
-  "error": "Error message description"
-}
+                {
+                "error": "Error message description"
+                }
             </div>
             
             <h4 class="font-semibold text-gray-700 mb-2">HTTP Status Codes:</h4>

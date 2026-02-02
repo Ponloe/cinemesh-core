@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"time"
 
@@ -47,32 +48,55 @@ func HashPassword(pw string) (string, error) {
 }
 
 func CreateUserHandler(c *gin.Context) {
-	var body CreateUserDTO
-	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var input struct {
+		Username string `gorm:"size:50;unique;not null"`
+		Email    string `json:"email" binding:"required,email"`
+		Password string `json:"password" binding:"required,min=6"`
+		Role     string `json:"role"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(400, gin.H{"error": "invalid request body", "details": err.Error()})
 		return
 	}
 
-	hashed, err := HashPassword(body.Password)
+	// Set default role if not provided
+	if input.Role == "" {
+		input.Role = "user"
+	}
+
+	// Validate role enum
+	if input.Role != "user" && input.Role != "admin" {
+		c.JSON(400, gin.H{"error": "role must be 'user' or 'admin'"})
+		return
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to hash password"})
+		c.JSON(500, gin.H{"error": "failed to hash password"})
 		return
 	}
 
 	user := User{
-		Username:     body.Username,
-		Email:        body.Email,
-		PasswordHash: hashed,
-		Role:         "user",
+		Email:        input.Email,
+		PasswordHash: string(hashedPassword),
+		Role:         input.Role,
 	}
 
 	if err := database.DB.Create(&user).Error; err != nil {
-		// handle unique constraint / validation errors simply
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		if strings.Contains(err.Error(), "duplicate key") {
+			c.JSON(409, gin.H{"error": "user with this email already exists"})
+			return
+		}
+		c.JSON(500, gin.H{"error": "failed to create user"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, toResponse(&user))
+	c.JSON(201, gin.H{
+		"id":    user.ID,
+		"email": user.Email,
+		"role":  user.Role,
+	})
 }
 
 func GetUserHandler(c *gin.Context) {
