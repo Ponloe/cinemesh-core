@@ -20,6 +20,10 @@ import (
 )
 
 func main() {
+
+	// ============================================
+	// LOAD ENVIRONMENT
+	// ============================================
 	if err := godotenv.Load(); err != nil {
 		log.Println(".env not loaded, continuing with environment variables")
 	}
@@ -35,6 +39,9 @@ func main() {
 		gin.SetMode(m)
 	}
 
+	// ============================================
+	// DATABASE
+	// ============================================
 	if err := database.Connect(); err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
@@ -52,49 +59,65 @@ func main() {
 
 	admin.InitializeTMDb()
 
+	// ============================================
+	// GIN SERVER
+	// ============================================
 	r := gin.Default()
 
 	// ============================================
-	// CORS CONFIGURATION
+	// CORS
 	// ============================================
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:3001"}, // frontend URLs
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept"},
+		AllowOrigins: []string{
+			"http://localhost:3000",
+			"http://localhost:3001",
+		},
+		AllowMethods: []string{
+			"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS",
+		},
+		AllowHeaders: []string{
+			"Origin", "Content-Type", "Authorization", "Accept",
+		},
 		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true, // Allow cookies
+		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
 
-	// Register custom template functions
+	// ============================================
+	// TEMPLATE FUNCTIONS
+	// ============================================
 	r.SetFuncMap(template.FuncMap{
 		"add": func(a, b int) int {
 			return a + b
 		},
 	})
 
-	r.LoadHTMLGlob("internal/admin/templates/*")
-
+	// ============================================
+	// HEALTH CHECK
+	// ============================================
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
 	// ============================================
-	// HOME PAGE - API Documentation
+	// HOME PAGE (API DOCS)
 	// ============================================
-	r.GET("/", api.APIDocsHandler) // Direct render instead of redirect
+	r.GET("/", api.APIDocsHandler)
 
 	// ============================================
-	// PUBLIC API ROUTES (No Auth Required)
+	// PUBLIC API ROUTES
 	// ============================================
 	publicAPI := r.Group("/api/public")
 	{
-		// API Documentation (also available at root /)
+
+		// API Docs
 		publicAPI.GET("/docs", api.APIDocsHandler)
 
 		// Movies
 		publicAPI.GET("/movies", api.ListMoviesPublicHandler)
 		publicAPI.GET("/movies/:id", api.GetMoviePublicHandler)
+
+		publicAPI.GET("/movies/:id/showtimes", api.GetMovieShowtimesPublicHandler)
 
 		// Genres
 		publicAPI.GET("/genres", api.ListGenresPublicHandler)
@@ -116,18 +139,21 @@ func main() {
 	r.POST("/users", users.CreateUserHandler)
 	r.GET("/users/:id", users.GetUserHandler)
 
-	// Protected routes
+	// Protected route
 	r.GET("/me", auth.RequireAuth(), auth.MeHandler)
 
 	// ============================================
-	// ADMIN ROUTES (Protected)
+	// ADMIN ROUTES
 	// ============================================
 	r.GET("/admin/login", admin.LoginFormHandler)
 	r.POST("/admin/login", admin.LoginPostHandler)
 
 	adminGroup := r.Group("/admin", auth.RequireAuth(), auth.RequireAdmin())
 	{
+
 		adminGroup.GET("/", admin.DashboardHandler)
+
+		// Users
 		adminGroup.GET("/users", users.ListUsersHandler)
 		adminGroup.GET("/users/new", users.NewUserFormHandler)
 		adminGroup.POST("/users", users.CreateUserAdminHandler)
@@ -135,7 +161,7 @@ func main() {
 		adminGroup.POST("/users/:id", users.UpdateUserHandler)
 		adminGroup.POST("/users/:id/delete", users.DeleteUserHandler)
 
-		// Movie admin routes
+		// Movies
 		adminGroup.GET("/movies", movies.ListMoviesAdminHandler)
 		adminGroup.GET("/movies/new", movies.NewMovieFormHandler)
 		adminGroup.POST("/movies", movies.CreateMovieAdminHandler)
@@ -143,21 +169,21 @@ func main() {
 		adminGroup.POST("/movies/:id", movies.UpdateMovieHandler)
 		adminGroup.POST("/movies/:id/delete", movies.DeleteMovieHandler)
 
-		// TMDb Integration Routes
+		// TMDb Integration
 		adminGroup.GET("/tmdb/search", admin.TMDbSearchPageHandler)
 		adminGroup.GET("/tmdb/api/search", admin.TMDbSearchHandler)
 		adminGroup.POST("/tmdb/import", admin.ImportFromTMDbHandler)
 		adminGroup.GET("/tmdb/prefill", admin.PrefillFromTMDbHandler)
 
-		// Cast management routes
+		// Cast
 		adminGroup.GET("/movies/:id/cast", movies.ManageCastHandler)
 		adminGroup.POST("/movies/:id/cast", movies.AddCastMemberHandler)
 		adminGroup.POST("/movies/:id/cast/:person_id/:role/delete", movies.RemoveCastMemberHandler)
 
-		// Person admin routes
+		// People
 		adminGroup.GET("/people", movies.ListPeopleAdminHandler)
 
-		// Genre admin routes
+		// Genres
 		adminGroup.GET("/genres", movies.ListGenresAdminHandler)
 		adminGroup.GET("/genres/new", movies.NewGenreFormHandler)
 		adminGroup.POST("/genres", movies.CreateGenreAdminHandler)
@@ -166,11 +192,17 @@ func main() {
 		adminGroup.POST("/genres/:id/delete", movies.DeleteGenreHandler)
 	}
 
+	// ============================================
+	// ADMIN LOGOUT
+	// ============================================
 	r.POST("/admin/logout", func(c *gin.Context) {
 		c.SetCookie("token", "", -1, "/", "", false, true)
 		c.Redirect(http.StatusFound, "/admin/login")
 	})
 
+	// ============================================
+	// SERVER START
+	// ============================================
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -179,5 +211,6 @@ func main() {
 	log.Printf("Server starting on port %s", port)
 	log.Printf("Home/API Docs: http://localhost:%s", port)
 	log.Printf("Admin Panel: http://localhost:%s/admin", port)
+
 	r.Run(":" + port)
 }

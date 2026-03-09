@@ -8,7 +8,9 @@ import (
 )
 
 func APIDocsHandler(c *gin.Context) {
+
 	baseURL := os.Getenv("BASE_URL")
+
 	if baseURL == "" {
 		baseURL = "http://localhost:8080"
 	}
