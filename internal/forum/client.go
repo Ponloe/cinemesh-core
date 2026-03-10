@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -259,6 +261,9 @@ func (c *ForumClient) DeleteTopic(topicID string) error {
 func (c *ForumClient) DeleteThread(threadSlug string) error {
 	url := fmt.Sprintf("%s/api/forum/threads/%s", c.BaseURL, threadSlug)
 
+	log.Printf("DELETE request to: %s", url)
+	log.Printf("Token (first 20 chars): %s...", c.Token[:min(20, len(c.Token))])
+
 	req, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
 		return err
@@ -273,8 +278,12 @@ func (c *ForumClient) DeleteThread(threadSlug string) error {
 	}
 	defer resp.Body.Close()
 
+	body, _ := ioutil.ReadAll(resp.Body)
+	log.Printf("Response status: %d", resp.StatusCode)
+	log.Printf("Response body: %s", string(body))
+
 	if resp.StatusCode >= 400 {
-		return fmt.Errorf("delete failed with status: %d", resp.StatusCode)
+		return fmt.Errorf("delete failed with status: %d, body: %s", resp.StatusCode, string(body))
 	}
 
 	return nil

@@ -212,7 +212,7 @@ func main() {
 		// Forum Moderation
 		adminGroup.POST("/forum/replies/:reply_id/delete", forum.DeleteReplyHandler)
 		adminGroup.POST("/forum/threads/:thread_id/pin", forum.PinThreadHandler)
-		adminGroup.POST("/forum/threads/:thread_slug/delete", forum.DeleteThreadHandler)
+		adminGroup.DELETE("/forum/threads/:thread_slug", forum.DeleteThreadHandler)
 	}
 
 	// ============================================

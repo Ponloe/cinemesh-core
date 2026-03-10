@@ -191,8 +191,16 @@
             }
 
             try {
-                const response = await fetch(`/admin/forum/threads/${threadSlug}/delete`, {
-                    method: 'POST',
+                // Get the token from cookie
+                const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
+                
+                const response = await fetch(`/admin/forum/threads/${threadSlug}`, {
+                    method: 'DELETE', 
+                    credentials: 'same-origin',
+                    headers: {
+                        'Authorization': token ? `Bearer ${token}` : '',
+                        'Content-Type': 'application/json'
+                    }
                 });
 
                 if (response.ok) {
