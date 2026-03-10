@@ -94,7 +94,7 @@ func main() {
 		},
 	})
 
-	// r.LoadHTMLGlob("internal/admin/templates/*")
+	r.LoadHTMLGlob("internal/admin/templates/*")
 
 	// ============================================
 	// HEALTH CHECK
