@@ -115,6 +115,10 @@
                                 {{end}}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <button onclick="deleteThread('{{.Slug}}', '{{.Title}}')"
+                                        class="text-red-600 hover:text-red-800 font-medium">
+                                    🗑️ Delete
+                                </button>
                             </td>
                         </tr>
                         {{else}}
@@ -181,24 +185,25 @@
             });
         });
 
-        async function pinThread(threadId, isPinned) {
+        async function deleteThread(threadSlug, threadTitle) {
+            if (!confirm(`Are you sure you want to delete the thread "${threadTitle}"? This action cannot be undone.`)) {
+                return;
+            }
+
             try {
-                const response = await fetch(`/admin/forum/threads/${threadId}/pin`, {
+                const response = await fetch(`/admin/forum/threads/${threadSlug}/delete`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ is_pinned: isPinned })
                 });
-                
+
                 if (response.ok) {
                     location.reload();
                 } else {
-                    alert('Failed to update thread');
+                    const data = await response.json();
+                    alert('Failed to delete thread: ' + (data.error || 'Unknown error'));
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Error updating thread');
+                alert('Error deleting thread');
             }
         }
     </script>

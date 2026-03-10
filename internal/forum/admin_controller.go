@@ -58,3 +58,29 @@ func PinThreadHandler(c *gin.Context) {
 		"message": "Thread updated successfully",
 	})
 }
+
+// DeleteThreadHandler handles thread deletion
+func DeleteThreadHandler(c *gin.Context) {
+	threadSlug := c.Param("thread_slug")
+
+	// Get admin token from context
+	token, exists := c.Get("token")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	client := GetClient()
+	client.Token = token.(string)
+
+	if err := client.DeleteThread(threadSlug); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to delete thread: " + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Thread deleted successfully",
+	})
+}

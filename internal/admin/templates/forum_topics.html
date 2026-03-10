@@ -26,6 +26,9 @@
     <div class="container mx-auto p-4">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-2xl font-bold">Forum Topics</h2>
+            <a href="/admin/forum/topics/new" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">
+                ➕ Create Topic
+            </a>
         </div>
 
         {{if .error}}
@@ -36,44 +39,64 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {{range .topics}}
-            <a href="/admin/forum/topics/{{.Slug}}" class="block">
-                <div class="bg-white rounded-lg shadow hover:shadow-lg transition p-6 h-full"
-                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                    <div class="text-white">
-                        <div class="text-4xl mb-3">{{if .Icon}}{{.Icon}}{{else}}💬{{end}}</div>
-                        <h3 class="text-xl font-bold mb-2">{{.Name}}</h3>
-                        <p class="text-sm opacity-90 mb-3">{{.Description}}</p>
-                        <div class="flex items-center justify-between text-sm">
-                            <span>→</span>
+            <div class="relative group">
+                <a href="/admin/forum/topics/{{.Slug}}" class="block">
+                    <div class="bg-white rounded-lg shadow hover:shadow-lg transition p-6 h-full"
+                        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <div class="text-white">
+                            <h3 class="text-xl font-bold mb-2">{{.Name}}</h3>
+                            <p class="text-sm opacity-90 mb-3">{{.Description}}</p>
+                            <div class="flex items-center justify-between text-sm">
+                                <span>→</span>
+                            </div>
                         </div>
                     </div>
+                </a>
+                
+                <!-- Action buttons (appear on hover) -->
+                <div class="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <a href="/admin/forum/topics/{{.Slug}}/edit" 
+                    class="bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600"
+                    title="Edit topic">
+                        ✏️
+                    </a>
+                    <button onclick="deleteTopic('{{.Slug}}', '{{.Name}}')" 
+                            class="bg-red-500 text-white p-2 rounded-full hover:bg-red-600"
+                            title="Delete topic">
+                        🗑️
+                    </button>
                 </div>
-            </a>
+            </div>
             {{else}}
             <div class="col-span-full text-center py-8 text-gray-500">
                 No topics found
             </div>
             {{end}}
         </div>
-
-        <!-- Quick Stats -->
-        <div class="mt-6 bg-white rounded-lg shadow p-6">
-            <h3 class="text-lg font-semibold mb-4">Forum Overview</h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="text-center">
-                    <p class="text-2xl font-bold text-blue-600">{{len .topics}}</p>
-                    <p class="text-sm text-gray-600">Total Topics</p>
-                </div>
-                <div class="text-center">
-                    <p class="text-2xl font-bold text-green-600">
-                        {{$total := 0}}
-                        {{range .topics}}{{$total = add $total .ThreadCount}}{{end}}
-                        {{$total}}
-                    </p>
-                    <p class="text-sm text-gray-600">Total Threads</p>
-                </div>
-            </div>
-        </div>
     </div>
+
+    <script>
+        async function deleteTopic(topicId, topicName) {
+            if (!confirm(`Are you sure you want to delete the topic "${topicName}"? This will delete all threads and replies in this topic.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/admin/forum/topics/${topicId}/delete`, {
+                    method: 'POST',
+                });
+
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    const data = await response.json();
+                    alert('Failed to delete topic: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error deleting topic');
+            }
+        }
+    </script>
 </body>
 </html>

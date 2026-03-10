@@ -183,3 +183,167 @@ func (c *ForumClient) UpdateThread(threadID string, updates map[string]interface
 
 	return nil
 }
+
+// CreateTopic creates a new forum topic
+func (c *ForumClient) CreateTopic(name, description, icon string) (*Topic, error) {
+	payload := map[string]interface{}{
+		"name":        name,
+		"description": description,
+		"icon":        icon,
+	}
+
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf("%s/api/forum/topics", c.BaseURL)
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+c.Token)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		return nil, fmt.Errorf("create failed with status: %d", resp.StatusCode)
+	}
+
+	var apiResp APIResponse
+	if err := json.NewDecoder(resp.Body).Decode(&apiResp); err != nil {
+		return nil, err
+	}
+
+	var topic Topic
+	data, _ := json.Marshal(apiResp.Data)
+	json.Unmarshal(data, &topic)
+
+	return &topic, nil
+}
+
+// DeleteTopic deletes a forum topic by ID
+func (c *ForumClient) DeleteTopic(topicID string) error {
+	url := fmt.Sprintf("%s/api/forum/topics/%s", c.BaseURL, topicID)
+
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+c.Token)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		return fmt.Errorf("delete failed with status: %d", resp.StatusCode)
+	}
+
+	return nil
+}
+
+// DeleteThread deletes a forum thread by slug (soft delete)
+func (c *ForumClient) DeleteThread(threadSlug string) error {
+	url := fmt.Sprintf("%s/api/forum/threads/%s", c.BaseURL, threadSlug)
+
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+c.Token)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		return fmt.Errorf("delete failed with status: %d", resp.StatusCode)
+	}
+
+	return nil
+}
+
+// UpdateTopic updates an existing forum topic
+func (c *ForumClient) UpdateTopic(topicSlug string, name, description, icon string) (*Topic, error) {
+	payload := map[string]interface{}{
+		"name":        name,
+		"description": description,
+		"icon":        icon,
+	}
+
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf("%s/api/forum/topics/%s", c.BaseURL, topicSlug)
+
+	req, err := http.NewRequest("PATCH", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+c.Token)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		return nil, fmt.Errorf("update failed with status: %d", resp.StatusCode)
+	}
+
+	var apiResp APIResponse
+	if err := json.NewDecoder(resp.Body).Decode(&apiResp); err != nil {
+		return nil, err
+	}
+
+	var topic Topic
+	data, _ := json.Marshal(apiResp.Data)
+	json.Unmarshal(data, &topic)
+
+	return &topic, nil
+}
+
+// GetTopicBySlug fetches a single topic for editing
+func (c *ForumClient) GetTopicBySlug(slug string) (*Topic, error) {
+	url := fmt.Sprintf("%s/api/forum/topics/%s", c.BaseURL, slug)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var apiResp APIResponse
+	if err := json.NewDecoder(resp.Body).Decode(&apiResp); err != nil {
+		return nil, err
+	}
+
+	var topic Topic
+	data, _ := json.Marshal(apiResp.Data)
+	json.Unmarshal(data, &topic)
+
+	return &topic, nil
+}

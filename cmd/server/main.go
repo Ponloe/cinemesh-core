@@ -199,14 +199,20 @@ func main() {
 		adminGroup.POST("/genres/:id", movies.UpdateGenreHandler)
 		adminGroup.POST("/genres/:id/delete", movies.DeleteGenreHandler)
 
-		// Forum
+		// Forum -
 		adminGroup.GET("/forum", forum.ListTopicsHandler)
+		adminGroup.GET("/forum/topics/new", forum.NewTopicFormHandler)
+		adminGroup.POST("/forum/topics", forum.CreateTopicHandler)
+		adminGroup.GET("/forum/topics/:slug/edit", forum.EditTopicFormHandler)
+		adminGroup.POST("/forum/topics/:slug/update", forum.UpdateTopicHandler)
+		adminGroup.POST("/forum/topics/:slug/delete", forum.DeleteTopicHandler)
 		adminGroup.GET("/forum/topics/:slug", forum.ListThreadsHandler)
 		adminGroup.GET("/forum/threads/:thread_slug", forum.ViewThreadHandler)
 
 		// Forum Moderation
 		adminGroup.POST("/forum/replies/:reply_id/delete", forum.DeleteReplyHandler)
 		adminGroup.POST("/forum/threads/:thread_id/pin", forum.PinThreadHandler)
+		adminGroup.POST("/forum/threads/:thread_slug/delete", forum.DeleteThreadHandler)
 	}
 
 	// ============================================
