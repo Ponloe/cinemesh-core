@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Forum Moderation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 text-white p-4">
+        <div class="container mx-auto flex justify-between">
+            <h1 class="text-xl font-bold">Cinemesh Admin</h1>
+            <div>
+                <a href="/admin" class="mr-4">Dashboard</a>
+                <a href="/admin/users" class="mr-4">Users</a>
+                <a href="/admin/movies" class="mr-4">Movies</a>
+                <a href="/admin/genres" class="mr-4">Genres</a>
+                <a href="/admin/people" class="mr-4">People</a>
+                <a href="/admin/forum" class="mr-4 font-bold border-b-2">Forum</a>
+                <form action="/admin/logout" method="POST" class="inline">
+                    <button type="submit" class="text-red-500">Logout</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-4">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-3xl font-bold">Forum Moderation Dashboard</h2>
+        </div>
+
+        {{if .error}}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {{.error}}
+        </div>
+        {{end}}
+
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-700 mb-2">💬 Topics</h3>
+                        <p class="text-3xl font-bold text-blue-600">{{.stats.topicCount}}</p>
+                    </div>
+                    <div class="text-4xl opacity-20">📚</div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-700 mb-2">🧵 Threads</h3>
+                        <p class="text-3xl font-bold text-green-600">{{.stats.threadCount}}</p>
+                    </div>
+                    <div class="text-4xl opacity-20">📝</div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-700 mb-2">💭 Replies</h3>
+                        <p class="text-3xl font-bold text-purple-600">{{.stats.replyCount}}</p>
+                    </div>
+                    <div class="text-4xl opacity-20">💬</div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-700 mb-2">📌 Pinned</h3>
+                        <p class="text-3xl font-bold text-orange-600">{{.stats.pinnedCount}}</p>
+                    </div>
+                    <div class="text-4xl opacity-20">📍</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Topics Grid -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold">Forum Topics</h3>
+                <a href="/admin/forum" class="text-blue-600 hover:underline">View All →</a>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {{range .topics}}
+                <a href="/admin/forum/topics/{{.Slug}}" class="block">
+                    <div class="bg-white rounded-lg shadow hover:shadow-lg transition p-6 border-l-4 border-blue-500">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="text-3xl">{{if .Icon}}{{.Icon}}{{else}}💬{{end}}</div>
+                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                                {{.ThreadCount}} threads
+                            </span>
+                        </div>
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">{{.Name}}</h4>
+                        <p class="text-sm text-gray-600 line-clamp-2">{{.Description}}</p>
+                    </div>
+                </a>
+                {{else}}
+                <div class="col-span-full text-center py-8 text-gray-500 bg-white rounded-lg shadow">
+                    No topics found
+                </div>
+                {{end}}
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold">Recent Threads</h3>
+            </div>
+
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Thread
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Topic
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Author
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Stats
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Status
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {{range .recentThreads}}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4">
+                                    <a href="/admin/forum/topics/{{.TopicSlug}}/threads/{{.Slug}}" 
+                                       class="text-blue-600 hover:underline font-medium">
+                                        {{if .IsPinned}}📌{{end}}
+                                        {{if .IsLocked}}🔒{{end}}
+                                        {{.Title}}
+                                    </a>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-600">
+                                    <span class="bg-gray-100 px-2 py-1 rounded">{{.TopicSlug}}</span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold mr-2">
+                                            {{slice .CreatedBy.Username 0 1}}
+                                        </div>
+                                        <span class="text-sm text-gray-700">{{.CreatedBy.Username}}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-600">
+                                    <div class="space-y-1">
+                                        <div>💬 {{.Stats.ReplyCount}} replies</div>
+                                        <div>👍 {{.Stats.Upvotes}} upvotes</div>
+                                        <div>👁️ {{.Stats.Views}} views</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="space-y-1">
+                                        {{if .IsPinned}}
+                                        <span class="inline-block bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded">Pinned</span>
+                                        {{end}}
+                                        {{if .IsLocked}}
+                                        <span class="inline-block bg-red-100 text-red-800 text-xs px-2 py-1 rounded">Locked</span>
+                                        {{end}}
+                                        {{if .IsDeleted}}
+                                        <span class="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">Deleted</span>
+                                        {{end}}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex gap-2">
+                                        <button onclick=""
+                                                class="text-sm px-3 py-1 {{if .IsPinned}}bg-gray-200 text-gray-700{{else}}bg-orange-100 text-orange-700{{end}} rounded hover:opacity-80">
+                                            {{if .IsPinned}}Unpin{{else}}Pin{{end}}
+                                        </button>
+                                        <a href="/admin/forum/topics/{{.TopicSlug}}/threads/{{.Slug}}"
+                                            class="text-sm px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
+                                            View
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {{else}}
+                            <tr>
+                                <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                                    No recent threads
+                                </td>
+                            </tr>
+                            {{end}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <a href="/admin/forum" class="bg-blue-500 text-white p-6 rounded-lg shadow hover:bg-blue-600 transition text-center">
+                <div class="text-4xl mb-2">📚</div>
+                <h4 class="text-lg font-bold">Browse Topics</h4>
+                <p class="text-sm opacity-90">View all forum topics</p>
+            </a>
+
+            <div class="bg-green-500 text-white p-6 rounded-lg shadow hover:bg-green-600 transition text-center cursor-pointer"
+                 onclick="window.location.href='/admin/forum'">
+                <div class="text-4xl mb-2">🔍</div>
+                <h4 class="text-lg font-bold">Search Content</h4>
+                <p class="text-sm opacity-90">Find threads and replies</p>
+            </div>
+
+            <div class="bg-purple-500 text-white p-6 rounded-lg shadow hover:bg-purple-600 transition text-center cursor-pointer"
+                 onclick="refreshStats()">
+                <div class="text-4xl mb-2">📊</div>
+                <h4 class="text-lg font-bold">Refresh Stats</h4>
+                <p class="text-sm opacity-90">Update dashboard data</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function pinThread(threadId, isPinned) {
+            try {
+                const response = await fetch(`/admin/forum/threads/${threadId}/pin`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ is_pinned: isPinned })
+                });
+                
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    const data = await response.json();
+                    alert('Failed to update thread: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error updating thread');
+            }
+        }
+
+        function refreshStats() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>

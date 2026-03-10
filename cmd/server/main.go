@@ -15,6 +15,7 @@ import (
 	"github.com/Ponloe/cinemesh-core/internal/api"
 	"github.com/Ponloe/cinemesh-core/internal/auth"
 	"github.com/Ponloe/cinemesh-core/internal/database"
+	"github.com/Ponloe/cinemesh-core/internal/forum"
 	"github.com/Ponloe/cinemesh-core/internal/movies"
 	"github.com/Ponloe/cinemesh-core/internal/users"
 )
@@ -58,6 +59,7 @@ func main() {
 	}
 
 	admin.InitializeTMDb()
+	forum.InitializeForumClient()
 
 	// ============================================
 	// GIN SERVER
@@ -132,6 +134,10 @@ func main() {
 		// Search & Stats
 		publicAPI.GET("/search", api.SearchPublicHandler)
 		publicAPI.GET("/stats", api.GetStatsPublicHandler)
+
+		// Forum (proxy)
+		publicAPI.GET("/forum/topics", forum.ListTopicsPublicHandler)
+		publicAPI.GET("/forum/topics/:slug/threads", forum.GetThreadsPublicHandler)
 	}
 
 	// ============================================
@@ -192,6 +198,15 @@ func main() {
 		adminGroup.GET("/genres/:id/edit", movies.EditGenreFormHandler)
 		adminGroup.POST("/genres/:id", movies.UpdateGenreHandler)
 		adminGroup.POST("/genres/:id/delete", movies.DeleteGenreHandler)
+
+		// Forum
+		adminGroup.GET("/forum", forum.ListTopicsHandler)
+		adminGroup.GET("/forum/topics/:slug", forum.ListThreadsHandler)
+		adminGroup.GET("/forum/threads/:thread_slug", forum.ViewThreadHandler)
+
+		// Forum Moderation
+		adminGroup.POST("/forum/replies/:reply_id/delete", forum.DeleteReplyHandler)
+		adminGroup.POST("/forum/threads/:thread_id/pin", forum.PinThreadHandler)
 	}
 
 	// ============================================

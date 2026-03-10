@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Forum Topics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 text-white p-4">
+        <div class="container mx-auto flex justify-between">
+            <h1 class="text-xl font-bold">Cinemesh Admin</h1>
+            <div>
+                <a href="/admin" class="mr-4">Dashboard</a>
+                <a href="/admin/users" class="mr-4">Users</a>
+                <a href="/admin/movies" class="mr-4">Movies</a>
+                <a href="/admin/genres" class="mr-4">Genres</a>
+                <a href="/admin/people" class="mr-4">People</a>
+                <a href="/admin/forum" class="mr-4 font-bold border-b-2">Forum</a>
+                <form action="/admin/logout" method="POST" class="inline">
+                    <button type="submit" class="text-red-500">Logout</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+    <div class="container mx-auto p-4">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold">Forum Topics</h2>
+        </div>
+
+        {{if .error}}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {{.error}}
+        </div>
+        {{end}}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {{range .topics}}
+            <a href="/admin/forum/topics/{{.Slug}}" class="block">
+                <div class="bg-white rounded-lg shadow hover:shadow-lg transition p-6 h-full"
+                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <div class="text-white">
+                        <div class="text-4xl mb-3">{{if .Icon}}{{.Icon}}{{else}}💬{{end}}</div>
+                        <h3 class="text-xl font-bold mb-2">{{.Name}}</h3>
+                        <p class="text-sm opacity-90 mb-3">{{.Description}}</p>
+                        <div class="flex items-center justify-between text-sm">
+                            <span>→</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            {{else}}
+            <div class="col-span-full text-center py-8 text-gray-500">
+                No topics found
+            </div>
+            {{end}}
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="mt-6 bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold mb-4">Forum Overview</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="text-center">
+                    <p class="text-2xl font-bold text-blue-600">{{len .topics}}</p>
+                    <p class="text-sm text-gray-600">Total Topics</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-2xl font-bold text-green-600">
+                        {{$total := 0}}
+                        {{range .topics}}{{$total = add $total .ThreadCount}}{{end}}
+                        {{$total}}
+                    </p>
+                    <p class="text-sm text-gray-600">Total Threads</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

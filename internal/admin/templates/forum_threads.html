@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Forum Threads</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 text-white p-4">
+        <div class="container mx-auto flex justify-between">
+            <h1 class="text-xl font-bold">Cinemesh Admin</h1>
+            <div>
+                <a href="/admin" class="mr-4">Dashboard</a>
+                <a href="/admin/users" class="mr-4">Users</a>
+                <a href="/admin/movies" class="mr-4">Movies</a>
+                <a href="/admin/genres" class="mr-4">Genres</a>
+                <a href="/admin/people" class="mr-4">People</a>
+                <a href="/admin/forum" class="mr-4 font-bold border-b-2">Forum</a>
+                <form action="/admin/logout" method="POST" class="inline">
+                    <button type="submit" class="text-red-500">Logout</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+    <div class="container mx-auto p-4">
+        <div class="mb-4">
+            <a href="/admin/forum" class="text-blue-600 hover:underline">← Back to Topics</a>
+        </div>
+
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold">Threads in "{{.topicSlug}}"</h2>
+        </div>
+
+        {{if .error}}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {{.error}}
+        </div>
+        {{end}}
+
+        <div class="bg-white rounded-lg shadow">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Thread
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Author
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Stats
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {{range .threads}}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4">
+                                <a href="/admin/forum/threads/{{.Slug}}" class="hover:underline">
+                                    <div class="flex items-start gap-2">
+                                        {{if .IsPinned}}<span class="text-yellow-500" title="Pinned">📌</span>{{end}}
+                                        {{if .IsLocked}}<span class="text-red-500" title="Locked">🔒</span>{{end}}
+                                        <div>
+                                            <p class="font-semibold text-gray-900">{{.Title}}</p>
+                                            {{if .MovieTitle}}
+                                            <p class="text-xs text-gray-500">🎬 {{.MovieTitle}}</p>
+                                            {{end}}
+                                            <p class="text-xs text-gray-400 mt-1">
+                                                <span class="relative-time" data-time="{{.CreatedAt}}">{{.CreatedAt}}</span>
+                                            </p>
+                                            {{if .Tags}}
+                                            <div class="flex gap-1 mt-1">
+                                                {{range .Tags}}
+                                                <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">{{.}}</span>
+                                                {{end}}
+                                            </div>
+                                            {{end}}
+                                        </div>
+                                    </div>
+                                </a>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 text-lg">
+                                        👤
+                                    </div>
+                                    <div class="ml-2">
+                                        <p class="text-sm font-medium text-gray-900">{{.CreatedBy.Username}}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-500">
+                                    <p>{{.Stats.ReplyCount}} replies</p>
+                                    <p>{{.Stats.Upvotes}} upvotes</p>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {{if .IsDeleted}}
+                                <span class="px-2 py-1 text-xs font-semibold rounded bg-red-100 text-red-800">Deleted</span>
+                                {{else if .IsLocked}}
+                                <span class="px-2 py-1 text-xs font-semibold rounded bg-gray-100 text-gray-800">Locked</span>
+                                {{else if .IsPinned}}
+                                <span class="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Pinned</span>
+                                {{else}}
+                                <span class="px-2 py-1 text-xs font-semibold rounded bg-green-100 text-green-800">Active</span>
+                                {{end}}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            </td>
+                        </tr>
+                        {{else}}
+                        <tr>
+                            <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                                No threads found in this topic
+                            </td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        {{if .pagination}}
+        <div class="mt-4 flex justify-between items-center">
+            <div class="text-sm text-gray-600">
+                Showing page {{.pagination.Page}} of {{.pagination.TotalPages}} ({{.pagination.Total}} total)
+            </div>
+            <div class="flex gap-2">
+                {{if gt .pagination.Page 1}}
+                <a href="?page={{add .pagination.Page -1}}" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+                    Previous
+                </a>
+                {{end}}
+                {{if lt .pagination.Page .pagination.TotalPages}}
+                <a href="?page={{add .pagination.Page 1}}" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+                    Next
+                </a>
+                {{end}}
+            </div>
+        </div>
+        {{end}}
+    </div>
+
+    <script>
+        // Format timestamps to relative time
+        function formatRelativeTime(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffSec = Math.floor(diffMs / 1000);
+            const diffMin = Math.floor(diffSec / 60);
+            const diffHour = Math.floor(diffMin / 60);
+            const diffDay = Math.floor(diffHour / 24);
+            const diffMonth = Math.floor(diffDay / 30);
+            const diffYear = Math.floor(diffDay / 365);
+
+            if (diffSec < 60) return 'Just now';
+            if (diffMin < 60) return `${diffMin} ${diffMin === 1 ? 'minute' : 'minutes'} ago`;
+            if (diffHour < 24) return `${diffHour} ${diffHour === 1 ? 'hour' : 'hours'} ago`;
+            if (diffDay < 30) return `${diffDay} ${diffDay === 1 ? 'day' : 'days'} ago`;
+            if (diffMonth < 12) return `${diffMonth} ${diffMonth === 1 ? 'month' : 'months'} ago`;
+            return `${diffYear} ${diffYear === 1 ? 'year' : 'years'} ago`;
+        }
+
+        // Apply formatting to all timestamps
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.relative-time').forEach(el => {
+                const timeStr = el.getAttribute('data-time');
+                el.textContent = formatRelativeTime(timeStr);
+                el.title = timeStr; // Show full timestamp on hover
+            });
+        });
+
+        async function pinThread(threadId, isPinned) {
+            try {
+                const response = await fetch(`/admin/forum/threads/${threadId}/pin`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ is_pinned: isPinned })
+                });
+                
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Failed to update thread');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error updating thread');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Thread View</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .reply-depth-1 { margin-left: 2rem; }
+        .reply-depth-2 { margin-left: 4rem; }
+        .reply-depth-3 { margin-left: 6rem; }
+        .reply-depth-4 { margin-left: 8rem; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 text-white p-4">
+        <div class="container mx-auto flex justify-between">
+            <h1 class="text-xl font-bold">Cinemesh Admin</h1>
+            <div>
+                <a href="/admin" class="mr-4">Dashboard</a>
+                <a href="/admin/users" class="mr-4">Users</a>
+                <a href="/admin/movies" class="mr-4">Movies</a>
+                <a href="/admin/genres" class="mr-4">Genres</a>
+                <a href="/admin/people" class="mr-4">People</a>
+                <a href="/admin/forum" class="mr-4 font-bold border-b-2">Forum</a>
+                <form action="/admin/logout" method="POST" class="inline">
+                    <button type="submit" class="text-red-500">Logout</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+    <div class="container mx-auto p-4 max-w-5xl">
+        <div class="mb-4">
+            <a href="/admin/forum/topics/{{.thread.TopicSlug}}" class="text-blue-600 hover:underline">
+                ← Back to Threads
+            </a>
+        </div>
+
+        {{if .error}}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {{.error}}
+        </div>
+        {{end}}
+
+        <!-- Thread Header -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <div class="flex items-start justify-between mb-4">
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-2">
+                        {{if .thread.IsPinned}}<span class="text-yellow-500" title="Pinned">📌</span>{{end}}
+                        {{if .thread.IsLocked}}<span class="text-red-500" title="Locked">🔒</span>{{end}}
+                        <h2 class="text-2xl font-bold">{{.thread.Title}}</h2>
+                    </div>
+                    {{if .thread.MovieTitle}}
+                    <p class="text-sm text-gray-600 mb-2">🎬 Related to: {{.thread.MovieTitle}}</p>
+                    {{end}}
+                </div>
+            </div>
+
+            <!-- Thread Author & Content -->
+            <div class="flex items-start gap-4 mb-4">
+                <div class="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 text-2xl">
+                    👤
+                </div>
+                <div class="flex-1">
+                    <p class="font-semibold">{{.thread.CreatedBy.Username}}</p>
+                    <p class="text-sm text-gray-500">
+                        <span class="relative-time" data-time="{{.thread.CreatedAt}}">{{.thread.CreatedAt}}</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="prose max-w-none mb-4">
+                <p class="text-gray-700">{{.thread.Content}}</p>
+            </div>
+
+            <!-- Thread Stats -->
+            <div class="flex items-center gap-6 text-sm text-gray-600 pt-4 border-t">
+                <span>  {{.thread.Stats.ReplyCount}} replies</span>
+                <span>↑{{.thread.Stats.Upvotes}} upvotes</span>
+            </div>
+
+            {{if .thread.Tags}}
+            <div class="flex gap-2 mt-4">
+                {{range .thread.Tags}}
+                <span class="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">{{.}}</span>
+                {{end}}
+            </div>
+            {{end}}
+        </div>
+
+        <!-- Replies -->
+        <div class="space-y-4">
+            <h3 class="text-xl font-bold mb-4">Replies ({{len .replies}})</h3>
+            
+            {{range .replies}}
+            <div class="bg-white rounded-lg shadow p-4 reply-depth-{{.Depth}} {{if .IsDeleted}}opacity-50{{end}}">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 text-xl">
+                        👤
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-2">
+                            <div>
+                                <span class="font-semibold">{{.CreatedBy.Username}}</span>
+                                <span class="text-sm text-gray-500 ml-2">
+                                    <span class="relative-time" data-time="{{.CreatedAt}}">{{.CreatedAt}}</span>
+                                </span>
+                                {{if .IsEdited}}
+                                <span class="text-xs text-gray-400 ml-2">
+                                    (edited <span class="relative-time" data-time="{{.EditedAt}}">{{.EditedAt}}</span>)
+                                </span>
+                                {{end}}
+                                {{if .IsDeleted}}
+                                <span class="ml-2 px-2 py-0.5 text-xs bg-red-100 text-red-800 rounded">Deleted</span>
+                                {{end}}
+                            </div>
+                            {{if not .IsDeleted}}
+                            <button onclick="deleteReply('{{.ID}}')" 
+                                    class="text-red-600 hover:text-red-800 text-sm">
+                                🗑️ Delete
+                            </button>
+                            {{end}}
+                        </div>
+                        
+                        <p class="text-gray-700 mb-2">{{.Content}}</p>
+                        
+                        <div class="flex items-center gap-4 text-sm text-gray-500">
+                            <span>↑{{.Stats.Upvotes}}</span>
+                            <span>↓{{.Stats.Downvotes}}</span>
+                            {{if gt (len .Children) 0}}
+                            <span>{{len .Children}} replies</span>
+                            {{end}}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nested Replies -->
+                {{if .Children}}
+                <div class="mt-3 ml-8 space-y-3">
+                    {{range .Children}}
+                    <div class="bg-gray-50 rounded p-3 {{if .IsDeleted}}opacity-50{{end}}">
+                        <div class="flex items-start gap-2">
+                            <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 text-lg">
+                                👤
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-1">
+                                    <div>
+                                        <span class="font-semibold text-sm">{{.CreatedBy.Username}}</span>
+                                        <span class="text-xs text-gray-500 ml-2">
+                                            <span class="relative-time" data-time="{{.CreatedAt}}">{{.CreatedAt}}</span>
+                                        </span>
+                                        {{if .IsDeleted}}
+                                        <span class="ml-2 px-2 py-0.5 text-xs bg-red-100 text-red-800 rounded">Deleted</span>
+                                        {{end}}
+                                    </div>
+                                    {{if not .IsDeleted}}
+                                    <button onclick="deleteReply('{{.ID}}')" 
+                                            class="text-red-600 hover:text-red-800 text-xs">
+                                        🗑️
+                                    </button>
+                                    {{end}}
+                                </div>
+                                <p class="text-sm text-gray-700">{{.Content}}</p>
+                                <div class="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                                    <span>👍 {{.Stats.Upvotes}}</span>
+                                    <span>👎 {{.Stats.Downvotes}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {{end}}
+                </div>
+                {{end}}
+            </div>
+            {{else}}
+            <div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+                No replies yet
+            </div>
+            {{end}}
+        </div>
+    </div>
+
+    <script>
+        // Format timestamps to relative time
+        function formatRelativeTime(dateString) {
+            if (!dateString) return '';
+            
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffSec = Math.floor(diffMs / 1000);
+            const diffMin = Math.floor(diffSec / 60);
+            const diffHour = Math.floor(diffMin / 60);
+            const diffDay = Math.floor(diffHour / 24);
+            const diffMonth = Math.floor(diffDay / 30);
+            const diffYear = Math.floor(diffDay / 365);
+
+            if (diffSec < 60) return 'Just now';
+            if (diffMin < 60) return `${diffMin} ${diffMin === 1 ? 'minute' : 'minutes'} ago`;
+            if (diffHour < 24) return `${diffHour} ${diffHour === 1 ? 'hour' : 'hours'} ago`;
+            if (diffDay < 30) return `${diffDay} ${diffDay === 1 ? 'day' : 'days'} ago`;
+            if (diffMonth < 12) return `${diffMonth} ${diffMonth === 1 ? 'month' : 'months'} ago`;
+            return `${diffYear} ${diffYear === 1 ? 'year' : 'years'} ago`;
+        }
+
+        // Apply formatting to all timestamps
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.relative-time').forEach(el => {
+                const timeStr = el.getAttribute('data-time');
+                el.textContent = formatRelativeTime(timeStr);
+                el.title = timeStr; // Show full timestamp on hover
+            });
+        });
+
+        async function pinThread(threadId, isPinned) {
+            try {
+                const response = await fetch(`/admin/forum/threads/${threadId}/pin`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ is_pinned: isPinned })
+                });
+                
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Failed to update thread');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error updating thread');
+            }
+        }
+
+        async function deleteReply(replyId) {
+            if (!confirm('Are you sure you want to delete this reply?')) return;
+            
+            try {
+                const response = await fetch(`/admin/forum/replies/${replyId}/delete`, {
+                    method: 'POST',
+                });
+                
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Failed to delete reply');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error deleting reply');
+            }
+        }
+    </script>
+</body>
+</html>
