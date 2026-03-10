@@ -10,9 +10,11 @@ import (
 )
 
 type Claims struct {
-	UserID uint   `json:"user_id"`
-	Email  string `json:"email"`
-	Role   string `json:"role"`
+	UserID    uint   `json:"user_id"`
+	Email     string `json:"email"`
+	Username  string `json:"username"`
+	Role      string `json:"role"`
+	AvatarURL string `json:"avatar_url"`
 	jwt.RegisteredClaims
 }
 
@@ -25,9 +27,11 @@ func GenerateToken(u *users.User) (string, error) {
 	}
 	now := time.Now()
 	claims := Claims{
-		UserID: u.ID,
-		Email:  u.Email,
-		Role:   u.Role,
+		UserID:    u.ID,
+		Email:     u.Email,
+		Username:  u.Username,
+		Role:      u.Role,
+		AvatarURL: u.AvatarURL,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   strconv.FormatUint(uint64(u.ID), 10),
 			IssuedAt:  jwt.NewNumericDate(now),
