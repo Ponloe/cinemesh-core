@@ -73,6 +73,7 @@ func main() {
 		AllowOrigins: []string{
 			"http://localhost:3000",
 			"http://localhost:3001",
+			"http://165.22.241.177", // i know its not supposed to be hardcoded but its just for testing and frankly we have a day left
 		},
 		AllowMethods: []string{
 			"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS",
