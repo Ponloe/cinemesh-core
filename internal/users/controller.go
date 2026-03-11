@@ -49,7 +49,7 @@ func HashPassword(pw string) (string, error) {
 
 func CreateUserHandler(c *gin.Context) {
 	var input struct {
-		Username string `gorm:"size:50;unique;not null"`
+		Username string `json:"username" binding:"required,min=3"`
 		Email    string `json:"email" binding:"required,email"`
 		Password string `json:"password" binding:"required,min=6"`
 		Role     string `json:"role"`
@@ -78,6 +78,7 @@ func CreateUserHandler(c *gin.Context) {
 	}
 
 	user := User{
+		Username:     input.Username,
 		Email:        input.Email,
 		PasswordHash: string(hashedPassword),
 		Role:         input.Role,
@@ -93,9 +94,10 @@ func CreateUserHandler(c *gin.Context) {
 	}
 
 	c.JSON(201, gin.H{
-		"id":    user.ID,
-		"email": user.Email,
-		"role":  user.Role,
+		"id":       user.ID,
+		"username": user.Username,
+		"email":    user.Email,
+		"role":     user.Role,
 	})
 }
 
