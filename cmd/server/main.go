@@ -17,6 +17,7 @@ import (
 	"github.com/Ponloe/cinemesh-core/internal/database"
 	"github.com/Ponloe/cinemesh-core/internal/forum"
 	"github.com/Ponloe/cinemesh-core/internal/movies"
+	"github.com/Ponloe/cinemesh-core/internal/streaming"
 	"github.com/Ponloe/cinemesh-core/internal/users"
 )
 
@@ -60,6 +61,7 @@ func main() {
 
 	admin.InitializeTMDb()
 	forum.InitializeForumClient()
+	streaming.InitializeStreamingClient()
 
 	// ============================================
 	// GIN SERVER
@@ -74,6 +76,7 @@ func main() {
 			"http://localhost:3000",
 			"http://localhost:3001",
 			"http://165.22.241.177", // i know its not supposed to be hardcoded but its just for testing and frankly we have a day left
+			"http://15.134.219.18/streaming",
 		},
 		AllowMethods: []string{
 			"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS",
@@ -139,6 +142,13 @@ func main() {
 		// Forum (proxy)
 		publicAPI.GET("/forum/topics", forum.ListTopicsPublicHandler)
 		publicAPI.GET("/forum/topics/:slug/threads", forum.GetThreadsPublicHandler)
+
+		// Streaming Providers
+		publicAPI.GET("/streaming/movies", streaming.ListMoviesHandler)
+		publicAPI.GET("/streaming/movies/:id", streaming.GetMovieHandler)
+		publicAPI.PUT("/streaming/providers/:id", streaming.UpdateProviderHandler)
+		publicAPI.POST("/streaming/movies/:id/providers", streaming.AddProviderHandler)
+		publicAPI.DELETE("/streaming/providers/:id", streaming.DeleteProviderHandler)
 	}
 
 	// ============================================
