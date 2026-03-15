@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -151,7 +152,187 @@ func GetMovieShowtimesPublicHandler(c *gin.Context) {
 
 	var result interface{}
 	if err := json.Unmarshal(body, &result); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid ticketing response"})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "invalid ticketing response",
+			"body":  string(body),
+			"url":   reqURL,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": result})
+}
+
+// ================================
+// RESERVATIONS PROXY
+// ================================
+
+type createReservationDTO struct {
+	ShowtimeID    int     `json:"showtime_id" binding:"required"`
+	SeatLabel     string  `json:"seat_label" binding:"required"`
+	BookingLinkID *int    `json:"booking_link_id"`
+}
+
+func CreateReservationHandler(c *gin.Context) {
+
+	uidv, ok := c.Get("user_id")
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthenticated"})
+		return
+	}
+	coreUserID := uidv.(uint)
+
+	var dto createReservationDTO
+	if err := c.ShouldBindJSON(&dto); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ticketAPI := os.Getenv("TICKET_API")
+	if ticketAPI == "" {
+		ticketAPI = "http://localhost:8000"
+	}
+
+	payload := map[string]interface{}{
+		"showtime_id":     dto.ShowtimeID,
+		"core_user_id":    coreUserID,
+		"seat_label":      dto.SeatLabel,
+		"booking_link_id": dto.BookingLinkID,
+	}
+
+	bodyBytes, err := json.Marshal(payload)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to encode payload"})
+		return
+	}
+
+	req, err := http.NewRequest("POST", ticketAPI+"/reservations", bytes.NewReader(bodyBytes))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create request"})
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"error": "ticketing service unavailable"})
+		return
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to read ticketing response"})
+		return
+	}
+
+	if resp.StatusCode >= 400 {
+		c.JSON(resp.StatusCode, gin.H{
+			"error": "ticketing error",
+			"body":  string(respBody),
+		})
+		return
+	}
+
+	var result interface{}
+	if err := json.Unmarshal(respBody, &result); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "invalid ticketing response",
+			"body":  string(respBody),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": result})
+}
+
+func GetShowtimeReservedSeatsHandler(c *gin.Context) {
+
+	showtimeID := c.Param("showtime_id")
+
+	ticketAPI := os.Getenv("TICKET_API")
+	if ticketAPI == "" {
+		ticketAPI = "http://localhost:8000"
+	}
+
+	reqURL := ticketAPI + "/showtimes/" + showtimeID + "/reserved-seats"
+	resp, err := http.Get(reqURL)
+	if err != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"error": "ticketing service unavailable"})
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to read ticketing response"})
+		return
+	}
+
+	if resp.StatusCode >= 400 {
+		c.JSON(resp.StatusCode, gin.H{
+			"error": "ticketing error",
+			"body":  string(body),
+		})
+		return
+	}
+
+	var result interface{}
+	if err := json.Unmarshal(body, &result); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "invalid ticketing response",
+			"body":  string(body),
+			"url":   reqURL,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": result})
+}
+
+func GetUserReservationsHandler(c *gin.Context) {
+
+	uidv, ok := c.Get("user_id")
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthenticated"})
+		return
+	}
+	coreUserID := uidv.(uint)
+
+	ticketAPI := os.Getenv("TICKET_API")
+	if ticketAPI == "" {
+		ticketAPI = "http://localhost:8000"
+	}
+
+	reqURL := ticketAPI + "/users/" + strconv.FormatUint(uint64(coreUserID), 10) + "/reservations"
+	resp, err := http.Get(reqURL)
+	if err != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"error": "ticketing service unavailable"})
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to read ticketing response"})
+		return
+	}
+
+	if resp.StatusCode >= 400 {
+		c.JSON(resp.StatusCode, gin.H{
+			"error": "ticketing error",
+			"body":  string(body),
+		})
+		return
+	}
+
+	var result interface{}
+	if err := json.Unmarshal(body, &result); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "invalid ticketing response",
+			"body":  string(body),
+			"url":   reqURL,
+		})
 		return
 	}
 

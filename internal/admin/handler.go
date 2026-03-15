@@ -1,9 +1,12 @@
 package admin
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/Ponloe/cinemesh-core/internal/auth"
@@ -43,7 +46,60 @@ func InitializeTMDb() {
 }
 
 func DashboardHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "dashboard.html", gin.H{"title": "Admin Dashboard"})
+
+	var userCount, movieCount, genreCount, peopleCount int64
+
+	database.DB.Model(&users.User{}).Count(&userCount)
+	database.DB.Model(&movies.Movie{}).Count(&movieCount)
+	database.DB.Model(&movies.Genre{}).Count(&genreCount)
+	database.DB.Model(&movies.Person{}).Count(&peopleCount)
+
+	ticketCount := fetchTotalReservations()
+
+	c.HTML(http.StatusOK, "dashboard.html", gin.H{
+		"title": "Admin Dashboard",
+		"stats": gin.H{
+			"userCount":   userCount,
+			"movieCount":  movieCount,
+			"genreCount":  genreCount,
+			"peopleCount": peopleCount,
+			"forumCount":  0,
+			"ticketCount": ticketCount,
+		},
+	})
+}
+
+func fetchTotalReservations() int64 {
+	ticketAPI := os.Getenv("TICKET_API")
+	if ticketAPI == "" {
+		ticketAPI = "http://localhost:8000"
+	}
+
+	resp, err := http.Get(ticketAPI + "/reservations")
+	if err != nil {
+		log.Printf("failed to fetch reservations from ticket API: %v", err)
+		return 0
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("failed to read reservations response: %v", err)
+		return 0
+	}
+
+	if resp.StatusCode >= 400 {
+		log.Printf("ticket API returned error %d: %s", resp.StatusCode, string(body))
+		return 0
+	}
+
+	var reservations []interface{}
+	if err := json.Unmarshal(body, &reservations); err != nil {
+		log.Printf("failed to parse reservations response: %v", err)
+		return 0
+	}
+
+	return int64(len(reservations))
 }
 
 func LoginFormHandler(c *gin.Context) {
@@ -400,5 +456,103 @@ func PrefillFromTMDbHandler(c *gin.Context) {
 func TMDbSearchPageHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "tmdb_search.html", gin.H{
 		"title": "Import from TMDb",
+	})
+}
+
+func TicketsPageHandler(c *gin.Context) {
+	ticketAPI := os.Getenv("TICKET_API")
+	if ticketAPI == "" {
+		ticketAPI = "http://localhost:8000"
+	}
+
+	resp, err := http.Get(ticketAPI + "/reservations")
+	if err != nil {
+		log.Printf("failed to fetch reservations for admin: %v", err)
+		c.HTML(http.StatusInternalServerError, "tickets.html", gin.H{
+			"title":       "Tickets",
+			"error":       "Failed to load reservations",
+			"tickets":     []interface{}{},
+			"ticketCount": 0,
+		})
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("failed to read reservations for admin: %v", err)
+		c.HTML(http.StatusInternalServerError, "tickets.html", gin.H{
+			"title":       "Tickets",
+			"error":       "Failed to load reservations",
+			"tickets":     []interface{}{},
+			"ticketCount": 0,
+		})
+		return
+	}
+
+	if resp.StatusCode >= 400 {
+		log.Printf("ticket API error for admin %d: %s", resp.StatusCode, string(body))
+		c.HTML(http.StatusInternalServerError, "tickets.html", gin.H{
+			"title":       "Tickets",
+			"error":       "Ticket service error",
+			"tickets":     []interface{}{},
+			"ticketCount": 0,
+		})
+		return
+	}
+
+	var tickets []map[string]interface{}
+	if err := json.Unmarshal(body, &tickets); err != nil {
+		log.Printf("failed to parse reservations for admin: %v", err)
+		c.HTML(http.StatusInternalServerError, "tickets.html", gin.H{
+			"title":       "Tickets",
+			"error":       "Failed to parse reservations",
+			"tickets":     []interface{}{},
+			"ticketCount": 0,
+		})
+		return
+	}
+
+	// Enrich tickets with user and movie names
+	for _, t := range tickets {
+		if uidRaw, ok := t["core_user_id"]; ok {
+			switch v := uidRaw.(type) {
+			case float64:
+				uid := uint(v)
+				var u users.User
+				if err := database.DB.First(&u, uid).Error; err == nil {
+					t["user_name"] = u.Username
+					t["user_email"] = u.Email
+				}
+			}
+		}
+
+		// movie title from nested showtime.movie if present
+		if showtimeRaw, ok := t["showtime"]; ok {
+			if showtimeMap, ok := showtimeRaw.(map[string]interface{}); ok {
+				// Extract movie title
+				if movieRaw, ok := showtimeMap["movie"]; ok {
+					if movieMap, ok := movieRaw.(map[string]interface{}); ok {
+						if titleRaw, ok := movieMap["title"]; ok {
+							if titleStr, ok := titleRaw.(string); ok {
+								t["movie_title"] = titleStr
+							}
+						}
+					}
+				}
+				// Extract showtime start
+				if startRaw, ok := showtimeMap["start_time"]; ok {
+					if startStr, ok := startRaw.(string); ok {
+						t["showtime_start"] = startStr
+					}
+				}
+			}
+		}
+	}
+
+	c.HTML(http.StatusOK, "tickets.html", gin.H{
+		"title":       "Tickets",
+		"tickets":     tickets,
+		"ticketCount": len(tickets),
 	})
 }
