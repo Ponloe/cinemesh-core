@@ -17,6 +17,7 @@
                 <a href="/admin/genres" class="mr-4">Genres</a>
                 <a href="/admin/people" class="mr-4">People</a>
                 <a href="/admin/forum" class="mr-4">Forum</a>
+                <a href="/admin/tickets" class="mr-4">Tickets</a>
                 <form action="/admin/logout" method="POST" class="inline">
                     <button type="submit" class="text-red-500">Logout</button>
                 </form>
@@ -45,6 +46,10 @@
             <a href="/admin/forum" class="bg-white p-6 rounded shadow hover:shadow-lg transition">
                 <h3 class="text-lg font-semibold mb-2">💬 Forum</h3>
                 <p class="text-3xl font-bold text-blue-600">{{.stats.forumCount}}</p>
+            </a>
+            <a href="/admin/tickets" class="bg-white p-6 rounded shadow hover:shadow-lg transition">
+                <h3 class="text-lg font-semibold mb-2">🎟 Tickets</h3>
+                <p class="text-3xl font-bold text-blue-600">{{.stats.ticketCount}}</p>
             </a>
         </div>
         

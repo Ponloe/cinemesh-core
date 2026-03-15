@@ -98,7 +98,7 @@ func main() {
 		},
 	})
 
-	r.LoadHTMLGlob("internal/admin/templates/*")
+	r.LoadHTMLGlob("../../internal/admin/templates/*")
 
 	// ============================================
 	// HEALTH CHECK
@@ -126,6 +126,14 @@ func main() {
 		publicAPI.GET("/movies/:id", api.GetMoviePublicHandler)
 
 		publicAPI.GET("/movies/:id/showtimes", api.GetMovieShowtimesPublicHandler)
+
+		// Reservations (require auth)
+		authGroup := publicAPI.Group("", auth.RequireAuth())
+		{
+			authGroup.POST("/reservations", api.CreateReservationHandler)
+			authGroup.GET("/showtimes/:showtime_id/reserved-seats", api.GetShowtimeReservedSeatsHandler)
+			authGroup.GET("/me/reservations", api.GetUserReservationsHandler)
+		}
 
 		// Genres
 		publicAPI.GET("/genres", api.ListGenresPublicHandler)
@@ -224,6 +232,9 @@ func main() {
 		adminGroup.POST("/forum/replies/:reply_id/delete", forum.DeleteReplyHandler)
 		adminGroup.POST("/forum/threads/:thread_id/pin", forum.PinThreadHandler)
 		adminGroup.DELETE("/forum/threads/:thread_slug", forum.DeleteThreadHandler)
+
+		// Tickets
+		adminGroup.GET("/tickets", admin.TicketsPageHandler)
 	}
 
 	// ============================================

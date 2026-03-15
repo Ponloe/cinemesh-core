@@ -61,3 +61,4 @@ type MoviePerson struct {
 func (MoviePerson) TableName() string {
 	return "movie_people"
 }
+
